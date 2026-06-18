@@ -32,8 +32,12 @@ ________________________________________
 ✗ abc
 ✗ update
 ✗ test
-________________________________________
 
+
+tumch kam chalu hoya adhi he kakrych 
+git pull origin main
+________________________________________
+tumch kam jahl ki he karych 
 git add .
 git commit -m "meaningful message"
 git push origin main
