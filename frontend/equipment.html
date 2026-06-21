@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agricultural Equipment Finder</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .tool-hero {
+            min-height: 430px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            background:
+                linear-gradient(110deg, rgba(7,28,22,.88), rgba(19,91,58,.65), rgba(246,184,75,.16)),
+                url("A.jpg") center/cover;
+        }
+        .tool-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 22% 22%, rgba(255,255,255,.2), transparent 18%),
+                repeating-linear-gradient(170deg, transparent 0 34px, rgba(255,255,255,.08) 35px 38px);
+            animation: fieldDrift 18s linear infinite;
+        }
+        .tool-hero-content {
+            position: relative;
+            z-index: 1;
+            color: white;
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+        .tool-hero h1 {
+            font-size: clamp(2.2rem, 6vw, 4.7rem);
+            line-height: 1.05;
+            max-width: 780px;
+        }
+        .tool-search {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            margin-top: 22px;
+            max-width: 850px;
+        }
+        .tool-search input,
+        .tool-search select {
+            width: 100%;
+        }
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin: 30px 0;
+        }
+        .equipment-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .equipment-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(71,209,140,.14), transparent 45%, rgba(246,184,75,.12));
+            opacity: 0;
+            transition: opacity .25s ease;
+        }
+        .equipment-card:hover::before {
+            opacity: 1;
+        }
+        .equipment-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .price {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: var(--green);
+            margin: 10px 0;
+        }
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .chip {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--green-soft);
+            color: var(--green-dark);
+            font-weight: 700;
+            font-size: .82rem;
+        }
+        .assistant-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-top: -34px;
+            position: relative;
+            z-index: 2;
+        }
+        @media(max-width: 900px) {
+            .tool-search,
+            .equipment-grid {
+                grid-template-columns: 1fr;
+            }
+            .assistant-strip {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="container">
+            <div class="logo">Maharashtra Agriculture</div>
+            <nav class="nav-menu">
+                <a href="index.html">Dashboard</a>
+                <a href="market.html">Market Prices</a>
+                <a href="disease.html">Disease Detection</a>
+                <a href="predictions.html">Predictions</a>
+                <a href="equipment.html" class="active">Equipment</a>
+            </nav>
+            <div class="auth-menu">
+                <select id="languageSelect" onchange="changePageLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="mr">Marathi</option>
+                    <option value="hi">Hindi</option>
+                </select>
+                <button class="btn btn-primary" onclick="FarmerAssistant.speak(getEquipmentSpeech())">Voice Help</button>
+            </div>
+        </div>
+    </div>
+
+    <section class="tool-hero">
+        <div class="tool-hero-content">
+            <span class="hero-badge">Tools, prices, crop suitability</span>
+            <h1 id="equipHeroTitle">Find the right agricultural equipment near you</h1>
+            <p id="equipHeroText">Search by crop, budget, and location. Results include estimated price, best crop use, and nearby shop information.</p>
+            <div class="tool-search">
+                <input id="toolSearch" placeholder="Search tool, e.g. sprayer, pump, tiller">
+                <select id="cropFilter">
+                    <option value="">All crops</option>
+                    <option value="Cotton">Cotton</option>
+                    <option value="Soybean">Soybean</option>
+                    <option value="Onion">Onion</option>
+                    <option value="Sugarcane">Sugarcane</option>
+                    <option value="Tomato">Tomato</option>
+                    <option value="Wheat">Wheat</option>
+                </select>
+                <button class="btn btn-primary" onclick="renderEquipment()">Search</button>
+            </div>
+        </div>
+    </section>
+
+    <main class="container">
+        <div class="assistant-strip card">
+            <div>
+                <h3 id="equipVoiceTitle">Voice assistant for farmers</h3>
+                <p id="equipVoiceText">Use Voice Help to read results aloud in English, Marathi, or Hindi.</p>
+            </div>
+            <button class="btn btn-primary" id="equipReadBtn" onclick="FarmerAssistant.speak(getEquipmentSpeech())">Read Results</button>
+            <button class="btn btn-primary" id="equipListenBtn" onclick="FarmerAssistant.startListening(handleEquipmentVoice)">🎙 Speak</button>
+            <div class="voice-command-result" id="assistantCommandResult">Say a crop or tool name, for example sprayer, onion, cotton, or pump.</div>
+        </div>
+
+        <section id="equipmentResults" class="equipment-grid"></section>
+
+        <section class="card">
+            <h3 id="equipHistoryTitle">Saved Farmer History</h3>
+            <div id="farmerHistoryList"></div>
+            <button class="btn btn-secondary" onclick="FarmerAssistant.clearHistory()">Clear History</button>
+        </section>
+    </main>
+
+    <script src="js/voice-assistant.js"></script>
+    <script>
+        const equipmentData = [
+            { name: 'Battery Sprayer 16L', price: 'Rs 2,800 - 4,500', crops: ['Cotton', 'Soybean', 'Tomato'], shop: 'Krushi Seva Kendra, Pune', distance: '3.2 km', use: 'Pesticide and nutrient spray' },
+            { name: 'Drip Irrigation Kit', price: 'Rs 8,000 - 18,000', crops: ['Onion', 'Tomato', 'Sugarcane'], shop: 'Jain Irrigation Dealer, Nashik', distance: '5.8 km', use: 'Water saving irrigation' },
+            { name: 'Mini Power Tiller', price: 'Rs 42,000 - 78,000', crops: ['Soybean', 'Wheat', 'Onion'], shop: 'Agro Tools Mart, Kolhapur', distance: '8.5 km', use: 'Soil preparation and intercultivation' },
+            { name: 'Mulching Paper Roll', price: 'Rs 1,600 - 3,200', crops: ['Tomato', 'Onion'], shop: 'Farm Inputs Store, Sangli', distance: '4.1 km', use: 'Weed control and moisture saving' },
+            { name: 'Sugarcane Trash Shredder', price: 'Rs 65,000 - 1,20,000', crops: ['Sugarcane'], shop: 'Maharashtra Agro Equipments, Pune', distance: '12 km', use: 'Residue management' },
+            { name: 'Seed Drill Attachment', price: 'Rs 22,000 - 45,000', crops: ['Wheat', 'Soybean', 'Cotton'], shop: 'Kisan Machinery, Nagpur', distance: '7.3 km', use: 'Uniform sowing and seed saving' }
+        ];
+
+        const equipmentTranslations = {
+            en: {
+                equipHeroTitle: 'Find the right agricultural equipment near you',
+                equipHeroText: 'Search by crop, budget, and location. Results include estimated price, best crop use, and nearby shop information.',
+                equipVoiceTitle: 'Voice assistant for farmers',
+                equipVoiceText: 'Use Voice Help to read results aloud in English, Marathi, or Hindi.',
+                equipReadBtn: 'Read Results',
+                equipListenBtn: '🎙 Speak',
+                equipHistoryTitle: 'Saved Farmer History'
+            },
+            mr: {
+                equipHeroTitle: 'जवळची योग्य कृषी उपकरणे शोधा',
+                equipHeroText: 'पीक, बजेट आणि स्थानानुसार उपकरणे शोधा. किंमत, उपयोग आणि जवळचे दुकान पहा.',
+                equipVoiceTitle: 'शेतकऱ्यांसाठी आवाज सहाय्यक',
+                equipVoiceText: 'निकाल इंग्रजी, मराठी किंवा हिंदीमध्ये मोठ्याने ऐका.',
+                equipReadBtn: 'निकाल वाचा',
+                equipListenBtn: '🎙 बोला',
+                equipHistoryTitle: 'सेव्ह केलेला शेतकरी इतिहास'
+            },
+            hi: {
+                equipHeroTitle: 'अपने पास सही कृषि उपकरण खोजें',
+                equipHeroText: 'फसल, बजट और स्थान के अनुसार उपकरण खोजें। कीमत, उपयोग और नजदीकी दुकान देखें।',
+                equipVoiceTitle: 'किसानों के लिए आवाज सहायक',
+                equipVoiceText: 'परिणाम अंग्रेजी, हिंदी या मराठी में सुनें।',
+                equipReadBtn: 'परिणाम सुनें',
+                equipListenBtn: '🎙 बोलें',
+                equipHistoryTitle: 'सेव किसान इतिहास'
+            }
+        };
+
+        function changePageLanguage(lang) {
+            localStorage.setItem('farmerAssistantLang', lang);
+            const dict = equipmentTranslations[lang] || equipmentTranslations.en;
+            Object.entries(dict).forEach(([id, text]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = text;
+            });
+        }
+
+        function renderEquipment() {
+            const query = document.getElementById('toolSearch').value.toLowerCase();
+            const crop = document.getElementById('cropFilter').value;
+            const box = document.getElementById('equipmentResults');
+
+            const results = equipmentData.filter(item => {
+                const matchesSearch = !query || item.name.toLowerCase().includes(query) || item.use.toLowerCase().includes(query);
+                const matchesCrop = !crop || item.crops.includes(crop);
+                return matchesSearch && matchesCrop;
+            });
+
+            if (!results.length) {
+                box.innerHTML = '<div class="card">No equipment found. Try another crop or tool name.</div>';
+                return;
+            }
+
+            box.innerHTML = results.map(item => `
+                <article class="card equipment-card">
+                    <h3>${item.name}</h3>
+                    <div class="price">${item.price}</div>
+                    <p><strong>Best for:</strong> ${item.use}</p>
+                    <p><strong>Nearest shop:</strong> ${item.shop}</p>
+                    <p><strong>Distance:</strong> ${item.distance}</p>
+                    <div class="chips">${item.crops.map(c => `<span class="chip">${c}</span>`).join('')}</div>
+                    <button class="btn btn-primary" onclick="saveTool('${item.name}', '${item.shop}')">Save</button>
+                </article>
+            `).join('');
+        }
+
+        function handleEquipmentVoice(transcript) {
+            const text = transcript.toLowerCase();
+            document.getElementById('assistantCommandResult').textContent = transcript;
+
+            const cropMap = {
+                'cotton': 'Cotton', 'कपास': 'Cotton', 'कापूस': 'Cotton',
+                'soybean': 'Soybean', 'सोयाबीन': 'Soybean',
+                'onion': 'Onion', 'प्याज': 'Onion', 'कांदा': 'Onion',
+                'sugarcane': 'Sugarcane', 'गन्ना': 'Sugarcane', 'ऊस': 'Sugarcane',
+                'tomato': 'Tomato', 'टमाटर': 'Tomato', 'टोमॅटो': 'Tomato',
+                'wheat': 'Wheat', 'गेहूं': 'Wheat', 'गहू': 'Wheat'
+            };
+
+            Object.entries(cropMap).forEach(([word, crop]) => {
+                if (text.includes(word.toLowerCase())) document.getElementById('cropFilter').value = crop;
+            });
+
+            const toolWords = ['sprayer', 'pump', 'tiller', 'drip', 'mulch', 'seed', 'फवारणी', 'पंप', 'उपकरण', 'औजार', 'मशीन'];
+            const foundTool = toolWords.find(word => text.includes(word.toLowerCase()));
+            if (foundTool) document.getElementById('toolSearch').value = foundTool;
+
+            renderEquipment();
+            FarmerAssistant.speak(getEquipmentSpeech());
+            FarmerAssistant.saveHistory('Voice equipment search', transcript);
+        }
+
+        function saveTool(name, shop) {
+            FarmerAssistant.saveHistory('Equipment search', `${name} at ${shop}`);
+            FarmerAssistant.speak(`${name}. Available near ${shop}.`);
+        }
+
+        function getEquipmentSpeech() {
+            const cards = [...document.querySelectorAll('.equipment-card h3')].map(el => el.textContent);
+            if (!cards.length) return 'No equipment results are visible. Search by crop or tool name.';
+            return `Found ${cards.length} equipment options. ${cards.slice(0, 3).join(', ')}.`;
+        }
+
+        window.addEventListener('DOMContentLoaded', renderEquipment);
+    </script>
+</body>
+</html>
