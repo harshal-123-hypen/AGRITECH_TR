@@ -2,31 +2,43 @@ let profitChart;
 
 async function initPage() {
     updateAuthUI();
-    document.getElementById('authForm').addEventListener('submit', handleLogin);
-    window.addEventListener('click', function(event) {
+
+    const authForm = document.getElementById('authForm');
+    if (authForm) {
+        authForm.addEventListener('submit', handleLogin);
+    }
+
+    window.addEventListener('click', function (event) {
         const modal = document.getElementById('loginModal');
-        if (event.target === modal) {
+        if (modal && event.target === modal) {
             closeLoginModal();
         }
     });
 }
 
 async function updateAuthUI() {
-    const user = await getCurrentUser();
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
+    try {
+        const user = await getCurrentUser();
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
 
-    if (user) {
-        loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
-    } else {
-        loginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
+        if (!loginBtn || !logoutBtn) return;
+
+        if (user) {
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'block';
+        } else {
+            loginBtn.style.display = 'block';
+            logoutBtn.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Auth UI update failed:', error);
     }
 }
 
 async function handleLogin(e) {
     e.preventDefault();
+
     const email = document.getElementById('authEmail').value;
     const password = document.getElementById('authPassword').value;
 
@@ -34,6 +46,7 @@ async function handleLogin(e) {
         await login(email, password);
         closeLoginModal();
         updateAuthUI();
+        alert('Login successful');
     } catch (error) {
         alert('Login failed: ' + error.message);
     }
@@ -44,72 +57,176 @@ async function updatePredictions() {
     const district = document.getElementById('districtSelect').value;
     const area = parseFloat(document.getElementById('areaInput').value) || 1;
 
+    // Temporary input fields नसतील तर default values
+    const rainfall = parseFloat(document.getElementById('rainfallInput')?.value) || 800;
+    const temperature = parseFloat(document.getElementById('temperatureInput')?.value) || 28;
+    const marketPrice = parseFloat(document.getElementById('marketPriceInput')?.value) || 2500;
+
     if (!crop || !district) {
         alert('Please select crop and district');
         return;
     }
 
-    await loadProfitPrediction(crop, district, area);
+    await loadProfitPrediction(crop, district, rainfall, temperature, area, marketPrice);
     await loadRiskPrediction(crop, district);
 }
 
-async function loadProfitPrediction(crop, district, area) {
+async function loadProfitPrediction(crop, district, rainfall, temperature, area, marketPrice) {
     const profitContent = document.getElementById('profitContent');
     const profitLoading = document.getElementById('profitLoading');
 
     try {
-        profitLoading.style.display = 'block';
-        profitContent.style.display = 'none';
+        if (profitLoading) {
+            profitLoading.style.display = 'block';
+            profitLoading.innerHTML = 'Loading profit prediction...';
+        }
 
-        const prediction = await predictProfit(crop, district, area);
+        if (profitContent) {
+            profitContent.style.display = 'none';
+        }
 
-        document.getElementById('profitValue').textContent = `₹${prediction.predicted_profit.toFixed(0)}`;
-        document.getElementById('yieldValue').textContent = `${prediction.expected_yield.toFixed(2)} qtl`;
-        document.getElementById('priceValue').textContent = `₹${prediction.market_price_forecast.toFixed(0)}`;
-        document.getElementById('profitConfidence').textContent = `${(prediction.confidence * 100).toFixed(1)}%`;
+        // api.js मधली updated function
+        const prediction = await predictProfit(
+            crop,
+            district,
+            rainfall,
+            temperature,
+            area,
+            marketPrice
+        );
 
-        profitLoading.style.display = 'none';
-        profitContent.style.display = 'block';
+        // Backend currently returns only: { profit: number }
+        const profit = Number(prediction.profit || 0);
+
+        const profitValue = document.getElementById('profitValue');
+        const yieldValue = document.getElementById('yieldValue');
+        const priceValue = document.getElementById('priceValue');
+        const profitConfidence = document.getElementById('profitConfidence');
+
+        if (profitValue) {
+            profitValue.textContent = `₹${profit.toFixed(0)}`;
+        }
+
+        // Temporary derived/demo values until backend gives real values
+        if (yieldValue) {
+            yieldValue.textContent = `${(area * 18).toFixed(2)} qtl`;
+        }
+
+        if (priceValue) {
+            priceValue.textContent = `₹${Number(marketPrice).toFixed(0)}`;
+        }
+
+        if (profitConfidence) {
+            profitConfidence.textContent = `85.0%`;
+        }
+
+        if (profitLoading) {
+            profitLoading.style.display = 'none';
+        }
+
+        if (profitContent) {
+            profitContent.style.display = 'block';
+        }
+
     } catch (error) {
-        console.error('Profit error:', error);
-        profitLoading.innerHTML = '<p style="color:red;">Failed to load profit prediction</p>';
+        console.error('Profit prediction error:', error);
+
+        if (profitLoading) {
+            profitLoading.style.display = 'block';
+            profitLoading.innerHTML = `<p style="color:red;">Failed to load profit prediction: ${error.message}</p>`;
+        }
     }
 }
 
 async function loadRiskPrediction(crop, district) {
     const riskContent = document.getElementById('riskContent');
     const riskLoading = document.getElementById('riskLoading');
+    const recommendationsContent = document.getElementById('recommendationsContent');
 
     try {
-        riskLoading.style.display = 'block';
-        riskContent.style.display = 'none';
+        if (riskLoading) {
+            riskLoading.style.display = 'block';
+            riskLoading.innerHTML = 'Loading risk prediction...';
+        }
 
-        const prediction = await predictRisk(crop, district);
+        if (riskContent) {
+            riskContent.style.display = 'none';
+        }
+
+        // Current backend मध्ये risk API नाही
+        // म्हणून temporary demo data वापरतो
+        const prediction = {
+            risk_level: 'medium',
+            risk_score: 0.42,
+            rainfall_risk: 0.35,
+            pest_risk: 0.48,
+            market_risk: 0.43,
+            recommendations: [
+                'Monitor rainfall and irrigation schedule carefully.',
+                'Use preventive pest control measures.',
+                'Track mandi prices before harvest.',
+                'Maintain balanced fertilizer usage.',
+                'Review crop health weekly.'
+            ]
+        };
 
         const riskLevelEl = document.getElementById('riskLevel');
-        riskLevelEl.textContent = prediction.risk_level.toUpperCase();
-        riskLevelEl.className = `value risk-${prediction.risk_level}`;
+        if (riskLevelEl) {
+            riskLevelEl.textContent = prediction.risk_level.toUpperCase();
+            riskLevelEl.className = `value risk-${prediction.risk_level}`;
+        }
 
-        document.getElementById('riskScore').textContent = `${(prediction.risk_score * 100).toFixed(1)}%`;
-        document.getElementById('rainfallRisk').textContent = `${(prediction.rainfall_risk * 100).toFixed(1)}%`;
-        document.getElementById('pestRisk').textContent = `${(prediction.pest_risk * 100).toFixed(1)}%`;
-        document.getElementById('marketRisk').textContent = `${(prediction.market_risk * 100).toFixed(1)}%`;
+        const riskScore = document.getElementById('riskScore');
+        const rainfallRisk = document.getElementById('rainfallRisk');
+        const pestRisk = document.getElementById('pestRisk');
+        const marketRisk = document.getElementById('marketRisk');
+
+        if (riskScore) {
+            riskScore.textContent = `${(prediction.risk_score * 100).toFixed(1)}%`;
+        }
+
+        if (rainfallRisk) {
+            rainfallRisk.textContent = `${(prediction.rainfall_risk * 100).toFixed(1)}%`;
+        }
+
+        if (pestRisk) {
+            pestRisk.textContent = `${(prediction.pest_risk * 100).toFixed(1)}%`;
+        }
+
+        if (marketRisk) {
+            marketRisk.textContent = `${(prediction.market_risk * 100).toFixed(1)}%`;
+        }
 
         const recommendationsList = document.getElementById('recommendationsList');
-        recommendationsList.innerHTML = '';
-        prediction.recommendations.forEach(rec => {
-            const li = document.createElement('li');
-            li.textContent = rec;
-            recommendationsList.appendChild(li);
-        });
+        if (recommendationsList) {
+            recommendationsList.innerHTML = '';
 
-        document.getElementById('recommendationsContent').style.display = 'block';
+            prediction.recommendations.forEach(rec => {
+                const li = document.createElement('li');
+                li.textContent = rec;
+                recommendationsList.appendChild(li);
+            });
+        }
 
-        riskLoading.style.display = 'none';
-        riskContent.style.display = 'block';
+        if (recommendationsContent) {
+            recommendationsContent.style.display = 'block';
+        }
+
+        if (riskLoading) {
+            riskLoading.style.display = 'none';
+        }
+
+        if (riskContent) {
+            riskContent.style.display = 'block';
+        }
+
     } catch (error) {
-        console.error('Risk error:', error);
-        riskLoading.innerHTML = '<p style="color:red;">Failed to load risk prediction</p>';
+        console.error('Risk prediction error:', error);
+
+        if (riskLoading) {
+            riskLoading.style.display = 'block';
+            riskLoading.innerHTML = `<p style="color:red;">Failed to load risk prediction: ${error.message}</p>`;
+        }
     }
 }
 

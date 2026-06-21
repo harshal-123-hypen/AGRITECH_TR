@@ -1,354 +1,862 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Crop Predictions - Maharashtra Agriculture</title>
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        .prediction-hero {
-            min-height: 500px;
-            display: flex;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
-            background:
-                linear-gradient(112deg, rgba(6,25,20,.9), rgba(17,92,57,.66), rgba(246,184,75,.18)),
-                url("a0c477f111c3b5f2a0177ffa79d3ac75.jpg") center/cover;
-        }
-        .prediction-hero video {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: .38;
-        }
-        .prediction-hero::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background:
-                linear-gradient(105deg, rgba(7,27,22,.9), rgba(7,27,22,.52), transparent),
-                repeating-linear-gradient(170deg, transparent 0 36px, rgba(255,255,255,.08) 37px 40px);
-            animation: fieldDrift 18s linear infinite;
-        }
-        .prediction-hero-content {
-            position: relative;
-            z-index: 1;
-            color: white;
-            width: min(1180px, calc(100% - 32px));
-            margin: 0 auto;
-        }
-        .prediction-hero h1 {
-            font-size: clamp(2.4rem, 6vw, 5rem);
-            line-height: 1.04;
-            max-width: 780px;
-        }
-        .prediction-panel {
-            margin-top: -72px;
-            position: relative;
-            z-index: 3;
-        }
-        .prediction-form {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr) auto;
-            gap: 12px;
-            align-items: end;
-        }
-        .prediction-form select,
-        .prediction-form input {
-            width: 100%;
-        }
-        .result-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-            margin-top: 22px;
-        }
-        .metric {
-            font-size: 2rem;
-            font-weight: 900;
-            color: var(--green);
-            margin-top: 8px;
-        }
-        .risk-low { color: #15803d; }
-        .risk-medium { color: #b8860b; }
-        .risk-high { color: #c0392b; }
-        .recommendation-list {
-            display: grid;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .recommendation-list div {
-            padding: 12px 14px;
-            border-radius: 12px;
-            background: rgba(223,247,233,.76);
-            border: 1px solid rgba(31,138,91,.12);
-        }
-        @media(max-width: 980px) {
-            .prediction-form,
-            .result-grid {
-                grid-template-columns: 1fr;
-            }
-            .prediction-panel {
-                margin-top: -44px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Crop Predictions - Maharashtra Agriculture</title>
+  <style>
+    :root{
+      --bg:#f4fbf6;
+      --card:#ffffff;
+      --text:#183126;
+      --muted:#5f7569;
+      --green:#1f8a5b;
+      --green-dark:#166944;
+      --green-soft:#dff7e9;
+      --border:rgba(31,138,91,.14);
+      --shadow:0 14px 35px rgba(20,60,40,.10);
+      --radius:22px;
+      --radius-sm:14px;
+      --danger:#c0392b;
+      --warn:#b8860b;
+      --success:#15803d;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(31,138,91,.10), transparent 32%),
+        radial-gradient(circle at top right, rgba(246,184,75,.14), transparent 28%),
+        linear-gradient(180deg, #f8fffa, var(--bg));
+      color:var(--text);
+    }
+    a{color:inherit;text-decoration:none}
+    .container{width:min(1180px, calc(100% - 28px)); margin:0 auto}
+    .navbar{
+      position:sticky; top:0; z-index:40;
+      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,.82);
+      border-bottom:1px solid rgba(0,0,0,.06);
+    }
+    .navbar .container{
+      min-height:72px;
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+    }
+    .logo{
+      font-weight:900; letter-spacing:.2px;
+      color:var(--green-dark);
+      display:flex; align-items:center; gap:10px;
+      white-space:nowrap;
+    }
+    .logo::before{content:"🌾"}
+    .nav-menu{
+      display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+      color:#385044;
+      font-weight:600;
+    }
+    .nav-menu a{
+      padding:10px 12px; border-radius:999px;
+      transition:.2s ease;
+    }
+    .nav-menu a:hover,.nav-menu a.active{
+      background:var(--green-soft);
+      color:var(--green-dark);
+    }
+    .auth-menu{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+    select, input, button{
+      font:inherit;
+    }
+    select, input{
+      width:100%;
+      border:1px solid var(--border);
+      background:#fff;
+      color:var(--text);
+      border-radius:14px;
+      padding:13px 14px;
+      outline:none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+    select:focus, input:focus{
+      border-color: rgba(31,138,91,.40);
+      box-shadow: 0 0 0 4px rgba(31,138,91,.12);
+    }
+    .btn{
+      border:none;
+      border-radius:999px;
+      padding:12px 16px;
+      font-weight:800;
+      cursor:pointer;
+      transition:.2s ease;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      white-space:nowrap;
+    }
+    .btn:hover{transform: translateY(-1px)}
+    .btn-primary{
+      background: linear-gradient(135deg, var(--green), var(--green-dark));
+      color:#fff;
+      box-shadow: 0 10px 24px rgba(31,138,91,.22);
+    }
+    .btn-secondary{
+      background: #eef6f1;
+      color: var(--green-dark);
+    }
+
+    .prediction-hero{
+      min-height: 460px;
+      display:flex;
+      align-items:flex-end;
+      position:relative;
+      overflow:hidden;
+      border-bottom:1px solid rgba(0,0,0,.05);
+      background:
+        linear-gradient(112deg, rgba(6,25,20,.92), rgba(17,92,57,.72), rgba(246,184,75,.22)),
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.18), transparent 24%),
+        linear-gradient(135deg, #0b2a1f, #154c34 55%, #f0b74a);
+    }
+    .prediction-hero::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(105deg, rgba(7,27,22,.90), rgba(7,27,22,.52), transparent),
+        repeating-linear-gradient(170deg, transparent 0 36px, rgba(255,255,255,.07) 37px 40px);
+      animation: fieldDrift 18s linear infinite;
+      opacity:.85;
+      pointer-events:none;
+    }
+    @keyframes fieldDrift{
+      from{transform: translateX(0)}
+      to{transform: translateX(48px)}
+    }
+    .prediction-hero-content{
+      position:relative;
+      z-index:1;
+      color:#fff;
+      width:100%;
+      padding: 82px 0 84px;
+    }
+    .hero-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.16);
+      color:#fff;
+      font-weight:700;
+      margin-bottom:16px;
+      backdrop-filter: blur(8px);
+    }
+    .prediction-hero h1{
+      margin:0 0 14px;
+      font-size: clamp(2.2rem, 5.8vw, 4.8rem);
+      line-height:1.04;
+      max-width: 820px;
+      letter-spacing:-.03em;
+    }
+    .prediction-hero p{
+      margin:0;
+      max-width: 820px;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,.88);
+    }
+
+    main{padding: 0 0 50px}
+    .prediction-panel{
+      margin-top: -64px;
+      position:relative;
+      z-index:3;
+    }
+    .card{
+      background: rgba(255,255,255,.88);
+      border:1px solid rgba(255,255,255,.6);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      backdrop-filter: blur(10px);
+    }
+    .card h2,.card h3{
+      margin:0 0 14px;
+      letter-spacing:-.02em;
+    }
+    .card p{color:var(--muted); line-height:1.65}
+    .prediction-form{
+      display:grid;
+      grid-template-columns: 1.2fr 1.2fr .9fr 1fr auto;
+      gap: 12px;
+      align-items:end;
+    }
+    .field label{
+      display:block;
+      font-weight:800;
+      margin:0 0 8px;
+      color:#294236;
+    }
+    .result-grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:18px;
+      margin-top:22px;
+    }
+    .metric{
+      font-size:2rem;
+      font-weight:900;
+      color:var(--green);
+      margin-top:8px;
+      letter-spacing:-.03em;
+    }
+    .risk-low{ color: var(--success); }
+    .risk-medium{ color: var(--warn); }
+    .risk-high{ color: var(--danger); }
+
+    .recommendation-list{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+    .recommendation-list div{
+      padding:12px 14px;
+      border-radius:14px;
+      background: rgba(223,247,233,.82);
+      border:1px solid rgba(31,138,91,.12);
+      color:#234336;
+      line-height:1.55;
+    }
+    .section{
+      margin-top:18px;
+    }
+    .voice-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .voice-command-result{
+      margin-top:14px;
+      color:#3d5a4f;
+      padding:12px 14px;
+      border-radius:14px;
+      background:#f3fbf6;
+      border:1px dashed rgba(31,138,91,.18);
+    }
+    .history-list{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+    .history-item{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px 15px;
+      box-shadow: 0 8px 20px rgba(16,58,35,.06);
+    }
+    .history-item small{
+      display:block;
+      color:var(--muted);
+      margin-top:4px;
+      line-height:1.5;
+    }
+
+    .modal{
+      display:none;
+      position:fixed;
+      inset:0;
+      background: rgba(14,24,18,.55);
+      z-index:80;
+      padding:20px;
+      align-items:center;
+      justify-content:center;
+    }
+    .modal-content{
+      width:min(420px, 100%);
+      background:#fff;
+      border-radius:22px;
+      box-shadow: 0 28px 70px rgba(0,0,0,.25);
+      padding:22px;
+      position:relative;
+    }
+    .close{
+      position:absolute;
+      top:14px;
+      right:16px;
+      font-size:28px;
+      line-height:1;
+      cursor:pointer;
+      color:#7b8c85;
+    }
+    .auth-grid{
+      display:grid;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    @media (max-width: 1040px){
+      .prediction-form{grid-template-columns: 1fr 1fr}
+      .prediction-form button{grid-column: 1 / -1}
+      .result-grid{grid-template-columns: 1fr}
+      .navbar .container{flex-wrap:wrap; padding:12px 0}
+      .nav-menu{gap:8px}
+    }
+    @media (max-width: 640px){
+      .prediction-hero{min-height: 390px}
+      .prediction-hero-content{padding: 70px 0 78px}
+      .prediction-form{grid-template-columns: 1fr}
+      .card{padding:18px}
+    }
+  </style>
 </head>
 <body>
-    <div class="navbar">
-        <div class="container">
-            <div class="logo">Maharashtra Agriculture</div>
-            <nav class="nav-menu">
-                <a href="index.html">Dashboard</a>
-                <a href="market.html">Market Prices</a>
-                <a href="disease.html">Disease Detection</a>
-                <a href="predictions.html" class="active">Predictions</a>
-                <a href="equipment.html">Equipment</a>
-            </nav>
-            <div class="auth-menu">
-                <select id="languageSelect" onchange="changePageLanguage(this.value)">
-                    <option value="en">English</option>
-                    <option value="mr">Marathi</option>
-                    <option value="hi">Hindi</option>
-                </select>
-                <button class="btn btn-primary" onclick="FarmerAssistant.speak(getPredictionSpeech())">Voice</button>
-            </div>
-        </div>
+  <div class="navbar">
+    <div class="container">
+      <div class="logo">Maharashtra Agriculture</div>
+      <nav class="nav-menu">
+        <a href="index.html">Dashboard</a>
+        <a href="market.html">Market Prices</a>
+        <a href="disease.html">Disease Detection</a>
+        <a href="predictions.html" class="active">Predictions</a>
+        <a href="equipment.html">Equipment</a>
+      </nav>
+      <div class="auth-menu">
+        <select id="languageSelect" onchange="changePageLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="mr">Marathi</option>
+          <option value="hi">Hindi</option>
+        </select>
+        <button class="btn btn-primary" onclick="FarmerAssistant.speak(getPredictionSpeech())">Voice</button>
+        <button id="loginBtn" class="btn btn-secondary" onclick="openLoginModal()">Login</button>
+        <button id="logoutBtn" class="btn btn-secondary" onclick="logout()" style="display:none;">Logout</button>
+      </div>
     </div>
+  </div>
 
-    <section class="prediction-hero">
-        <video autoplay muted loop playsinline poster="a0c477f111c3b5f2a0177ffa79d3ac75.jpg">
-            <source src="assets/farm-bg.mp4" type="video/mp4">
-        </video>
-        <div class="prediction-hero-content">
-            <span class="hero-badge">Profit, risk, rainfall and market intelligence</span>
-            <h1 id="predHeroTitle">Live crop prediction for smarter farming decisions</h1>
-            <p id="predHeroText">Use crop, district, area, rainfall, and price signals to estimate profit and risk. Voice assistant can read results aloud.</p>
+  <section class="prediction-hero">
+    <div class="container prediction-hero-content">
+      <span class="hero-badge">Profit, risk, rainfall and market intelligence</span>
+      <h1 id="predHeroTitle">Live crop prediction for smarter farming decisions</h1>
+      <p id="predHeroText">Use crop, district, area, rainfall, and price signals to estimate profit and risk. Voice assistant can read results aloud.</p>
+    </div>
+  </section>
+
+  <main class="container">
+    <section class="card prediction-panel">
+      <h2 id="predInputsTitle">Prediction Inputs</h2>
+      <div class="prediction-form">
+        <div class="field">
+          <label id="predCropLabel">Crop</label>
+          <select id="cropSelect">
+            <option value="Soybean">Soybean</option>
+            <option value="Cotton">Cotton</option>
+            <option value="Onion">Onion</option>
+            <option value="Sugarcane">Sugarcane</option>
+            <option value="Tomato">Tomato</option>
+            <option value="Wheat">Wheat</option>
+          </select>
         </div>
+        <div class="field">
+          <label id="predDistrictLabel">District</label>
+          <select id="districtSelect">
+            <option value="Pune">Pune</option>
+            <option value="Nashik">Nashik</option>
+            <option value="Nagpur">Nagpur</option>
+            <option value="Kolhapur">Kolhapur</option>
+            <option value="Sangli">Sangli</option>
+          </select>
+        </div>
+        <div class="field">
+          <label id="predAreaLabel">Area</label>
+          <input id="areaInput" type="number" min="0.1" step="0.1" value="1" placeholder="Hectares" />
+        </div>
+        <div class="field">
+          <label id="predPriceLabel">Market Price</label>
+          <input id="priceInput" type="number" min="1" value="4200" placeholder="Rs / qtl" />
+        </div>
+        <button class="btn btn-primary" id="predButton" onclick="runPrediction()">Predict</button>
+      </div>
     </section>
 
-    <main class="container">
-        <section class="card prediction-panel">
-            <h2 id="predInputsTitle">Prediction Inputs</h2>
-            <div class="prediction-form">
-                <div>
-                    <label id="predCropLabel">Crop</label>
-                    <select id="cropSelect">
-                        <option value="Soybean">Soybean</option>
-                        <option value="Cotton">Cotton</option>
-                        <option value="Onion">Onion</option>
-                        <option value="Sugarcane">Sugarcane</option>
-                        <option value="Tomato">Tomato</option>
-                        <option value="Wheat">Wheat</option>
-                    </select>
-                </div>
-                <div>
-                    <label id="predDistrictLabel">District</label>
-                    <select id="districtSelect">
-                        <option value="Pune">Pune</option>
-                        <option value="Nashik">Nashik</option>
-                        <option value="Nagpur">Nagpur</option>
-                        <option value="Kolhapur">Kolhapur</option>
-                        <option value="Sangli">Sangli</option>
-                    </select>
-                </div>
-                <div>
-                    <label id="predAreaLabel">Area</label>
-                    <input id="areaInput" type="number" min="0.1" step="0.1" value="1" placeholder="Hectares">
-                </div>
-                <div>
-                    <label id="predPriceLabel">Market Price</label>
-                    <input id="priceInput" type="number" min="1" value="4200" placeholder="Rs / qtl">
-                </div>
-                <button class="btn btn-primary" id="predButton" onclick="runPrediction()">Predict</button>
-            </div>
-        </section>
+    <section class="result-grid">
+      <article class="card">
+        <h3 id="predProfitTitle">Expected Profit</h3>
+        <div class="metric" id="profitValue">Rs --</div>
+        <p id="yieldValue">Yield: --</p>
+        <p id="confidenceValue">Confidence: --</p>
+      </article>
 
-        <section class="result-grid">
-            <article class="card">
-                <h3 id="predProfitTitle">Expected Profit</h3>
-                <div class="metric" id="profitValue">Rs --</div>
-                <p id="yieldValue">Yield: --</p>
-                <p id="confidenceValue">Confidence: --</p>
-            </article>
-            <article class="card">
-                <h3 id="predRiskTitle">Risk Level</h3>
-                <div class="metric" id="riskValue">--</div>
-                <p id="riskScoreValue">Score: --</p>
-                <p id="weatherValue">Weather: checking live signal</p>
-            </article>
-            <article class="card">
-                <h3 id="predVoiceTitle">Voice Assistant</h3>
-                <p id="predVoiceText">Read prediction aloud for farmers who prefer listening.</p>
-                <button class="btn btn-primary" id="predReadBtn" onclick="FarmerAssistant.speak(getPredictionSpeech())">Read Result</button>
-                <button class="btn btn-primary" id="predListenBtn" onclick="FarmerAssistant.startListening()">🎙 Speak</button>
-                <button class="btn btn-secondary" id="predStopBtn" onclick="FarmerAssistant.stop()">Stop</button>
-                <p class="voice-command-result" id="assistantCommandResult">Say crop prediction, equipment, weather, market, disease, or scheme.</p>
-            </article>
-        </section>
+      <article class="card">
+        <h3 id="predRiskTitle">Risk Level</h3>
+        <div class="metric" id="riskValue">--</div>
+        <p id="riskScoreValue">Score: --</p>
+        <p id="weatherValue">Weather: checking live signal</p>
+      </article>
 
-        <section class="card">
-            <h3 id="predRecTitle">Recommendations</h3>
-            <div id="recommendations" class="recommendation-list">
-                <div>Enter details and click Predict.</div>
-            </div>
-        </section>
+      <article class="card">
+        <h3 id="predVoiceTitle">Voice Assistant</h3>
+        <p id="predVoiceText">Read prediction aloud for farmers who prefer listening.</p>
+        <div class="voice-row">
+          <button class="btn btn-primary" id="predReadBtn" onclick="FarmerAssistant.speak(getPredictionSpeech())">Read Result</button>
+          <button class="btn btn-primary" id="predListenBtn" onclick="FarmerAssistant.startListening()">🎙 Speak</button>
+          <button class="btn btn-secondary" id="predStopBtn" onclick="FarmerAssistant.stop()">Stop</button>
+        </div>
+        <p class="voice-command-result" id="assistantCommandResult">Say crop prediction, equipment, weather, market, disease, or scheme.</p>
+      </article>
+    </section>
 
-        <section class="card">
-            <h3 id="predHistoryTitle">Saved Farmer History</h3>
-            <div id="farmerHistoryList"></div>
-            <button class="btn btn-secondary" onclick="FarmerAssistant.clearHistory()">Clear History</button>
-        </section>
-    </main>
+    <section class="card section">
+      <h3 id="predRecTitle">Recommendations</h3>
+      <div id="recommendations" class="recommendation-list">
+        <div>Enter details and click Predict.</div>
+      </div>
+    </section>
 
-    <script src="js/api.js"></script>
-    <script src="js/voice-assistant.js"></script>
-    <script>
-        const cropProfiles = {
-            Soybean: { yield: 17, cost: 31000, risk: .34 },
-            Cotton: { yield: 14, cost: 42000, risk: .46 },
-            Onion: { yield: 225, cost: 78000, risk: .52 },
-            Sugarcane: { yield: 820, cost: 125000, risk: .38 },
-            Tomato: { yield: 260, cost: 92000, risk: .58 },
-            Wheat: { yield: 32, cost: 36000, risk: .29 }
+    <section class="card section">
+      <h3 id="predHistoryTitle">Saved Farmer History</h3>
+      <div id="farmerHistoryList" class="history-list"></div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-secondary" onclick="FarmerAssistant.clearHistory()">Clear History</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="loginModal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <span class="close" onclick="closeLoginModal()">&times;</span>
+      <h2>Login</h2>
+      <form id="authForm" class="auth-grid">
+        <input type="email" id="authEmail" placeholder="Email" required />
+        <input type="password" id="authPassword" placeholder="Password" required />
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:8000/api';
+    let authToken = localStorage.getItem('authToken');
+    let latestPrediction = null;
+
+    const predictionTranslations = {
+      en: {
+        predHeroTitle: 'Live crop prediction for smarter farming decisions',
+        predHeroText: 'Use crop, district, area, rainfall, and price signals to estimate profit and risk. Voice assistant can read results aloud.',
+        predInputsTitle: 'Prediction Inputs',
+        predCropLabel: 'Crop',
+        predDistrictLabel: 'District',
+        predAreaLabel: 'Area',
+        predPriceLabel: 'Market Price',
+        predButton: 'Predict',
+        predProfitTitle: 'Expected Profit',
+        predRiskTitle: 'Risk Level',
+        predVoiceTitle: 'Voice Assistant',
+        predVoiceText: 'Read prediction aloud for farmers who prefer listening.',
+        predReadBtn: 'Read Result',
+        predListenBtn: '🎙 Speak',
+        predStopBtn: 'Stop',
+        predRecTitle: 'Recommendations',
+        predHistoryTitle: 'Saved Farmer History'
+      },
+      mr: {
+        predHeroTitle: 'शेतीसाठी थेट पीक अंदाज',
+        predHeroText: 'पीक, जिल्हा, क्षेत्र, पाऊस आणि बाजारभाव वापरून नफा व जोखीम अंदाज मिळवा.',
+        predInputsTitle: 'अंदाजासाठी माहिती',
+        predCropLabel: 'पीक',
+        predDistrictLabel: 'जिल्हा',
+        predAreaLabel: 'क्षेत्र',
+        predPriceLabel: 'बाजारभाव',
+        predButton: 'अंदाज काढा',
+        predProfitTitle: 'अपेक्षित नफा',
+        predRiskTitle: 'जोखीम पातळी',
+        predVoiceTitle: 'आवाज सहाय्यक',
+        predVoiceText: 'शेतकऱ्यांसाठी अंदाज मोठ्याने वाचून सांगतो.',
+        predReadBtn: 'निकाल वाचा',
+        predListenBtn: '🎙 बोला',
+        predStopBtn: 'थांबवा',
+        predRecTitle: 'शिफारसी',
+        predHistoryTitle: 'सेव्ह केलेला शेतकरी इतिहास'
+      },
+      hi: {
+        predHeroTitle: 'बेहतर खेती के लिए लाइव फसल भविष्यवाणी',
+        predHeroText: 'फसल, जिला, क्षेत्र, बारिश और बाजार भाव से लाभ और जोखिम का अनुमान पाएं।',
+        predInputsTitle: 'भविष्यवाणी जानकारी',
+        predCropLabel: 'फसल',
+        predDistrictLabel: 'जिला',
+        predAreaLabel: 'क्षेत्र',
+        predPriceLabel: 'बाजार भाव',
+        predButton: 'भविष्यवाणी करें',
+        predProfitTitle: 'अनुमानित लाभ',
+        predRiskTitle: 'जोखिम स्तर',
+        predVoiceTitle: 'आवाज सहायक',
+        predVoiceText: 'किसानों के लिए परिणाम बोलकर सुनाता है।',
+        predReadBtn: 'परिणाम सुनें',
+        predListenBtn: '🎙 बोलें',
+        predStopBtn: 'रोकें',
+        predRecTitle: 'सिफारिशें',
+        predHistoryTitle: 'सेव किसान इतिहास'
+      }
+    };
+
+    function setAuthToken(token) {
+      authToken = token;
+      localStorage.setItem('authToken', token);
+    }
+
+    function clearAuthToken() {
+      authToken = null;
+      localStorage.removeItem('authToken');
+    }
+
+    function getAuthHeader() {
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+      return headers;
+    }
+
+    async function apiCall(endpoint, method = 'GET', body = null) {
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        method,
+        headers: getAuthHeader(),
+        body: body ? JSON.stringify(body) : null
+      });
+
+      if (!response.ok) {
+        let msg = `API Error: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          msg = errorData.detail || msg;
+        } catch {}
+        throw new Error(msg);
+      }
+      return await response.json();
+    }
+
+    async function login(email, password) {
+      if (!email || !password) throw new Error('Email and password are required');
+      const fakeToken = 'demo-token';
+      setAuthToken(fakeToken);
+      return { access_token: fakeToken, token_type: 'bearer', email };
+    }
+
+    async function getCurrentUser() {
+      if (!authToken) return null;
+      return { name: 'Demo User', email: 'demo@example.com' };
+    }
+
+    function openLoginModal() {
+      document.getElementById('loginModal').style.display = 'flex';
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').style.display = 'none';
+    }
+
+    function logout() {
+      clearAuthToken();
+      location.reload();
+    }
+
+    async function updateAuthUI() {
+      try {
+        const user = await getCurrentUser();
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (!loginBtn || !logoutBtn) return;
+        if (user) {
+          loginBtn.style.display = 'none';
+          logoutBtn.style.display = 'inline-flex';
+        } else {
+          loginBtn.style.display = 'inline-flex';
+          logoutBtn.style.display = 'none';
+        }
+      } catch (error) {
+        console.error('Auth UI update failed:', error);
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmail')?.value;
+      const password = document.getElementById('authPassword')?.value;
+      try {
+        await login(email, password);
+        closeLoginModal();
+        await updateAuthUI();
+        alert('Login successful');
+      } catch (error) {
+        alert('Login failed: ' + error.message);
+      }
+    }
+
+    function changePageLanguage(lang) {
+      localStorage.setItem('farmerAssistantLang', lang);
+      const dict = predictionTranslations[lang] || predictionTranslations.en;
+      Object.entries(dict).forEach(([id, text]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      });
+    }
+
+    const cropProfiles = {
+      Soybean: { yield: 17, cost: 31000, risk: .34 },
+      Cotton: { yield: 14, cost: 42000, risk: .46 },
+      Onion: { yield: 225, cost: 78000, risk: .52 },
+      Sugarcane: { yield: 820, cost: 125000, risk: .38 },
+      Tomato: { yield: 260, cost: 92000, risk: .58 },
+      Wheat: { yield: 32, cost: 36000, risk: .29 }
+    };
+
+    async function fetchLiveWeather(district) {
+      const coords = {
+        Pune: [18.5204, 73.8567],
+        Nashik: [19.9975, 73.7898],
+        Nagpur: [21.1458, 79.0882],
+        Kolhapur: [16.7050, 73.7421],
+        Sangli: [16.8500, 73.9167]
+      };
+
+      const [lat, lon] = coords[district] || coords.Pune;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation&timezone=Asia%2FKolkata`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        return data.current || {};
+      } catch {
+        return { temperature_2m: 29, relative_humidity_2m: 70, precipitation: 0 };
+      }
+    }
+
+    async function predictProfit(crop, district, rainfall, temperature, area, marketPrice) {
+      const response = await fetch(`${API_BASE}/predict`, {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: JSON.stringify({
+          crop,
+          district,
+          rainfall: Number(rainfall),
+          temperature: Number(temperature),
+          area: Number(area),
+          market_price: Number(marketPrice)
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Prediction failed');
+      }
+
+      return await response.json();
+    }
+
+    function saveHistory(title, text) {
+      const history = JSON.parse(localStorage.getItem('farmerHistory') || '[]');
+      history.unshift({
+        title,
+        text,
+        at: new Date().toISOString()
+      });
+      localStorage.setItem('farmerHistory', JSON.stringify(history.slice(0, 20)));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const historyList = document.getElementById('farmerHistoryList');
+      if (!historyList) return;
+
+      const history = JSON.parse(localStorage.getItem('farmerHistory') || '[]');
+      if (!history.length) {
+        historyList.innerHTML = '<div class="history-item">No saved history yet.</div>';
+        return;
+      }
+
+      historyList.innerHTML = history.map(item => `
+        <div class="history-item">
+          <strong>${item.title}</strong>
+          <small>${item.text}</small>
+          <small>${new Date(item.at).toLocaleString()}</small>
+        </div>
+      `).join('');
+    }
+
+    function clearHistory() {
+      localStorage.removeItem('farmerHistory');
+      renderHistory();
+    }
+
+    const FarmerAssistant = {
+      speak(text) {
+        if (!('speechSynthesis' in window)) {
+          alert('Speech synthesis is not supported in this browser.');
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 1;
+        utter.pitch = 1;
+        utter.lang = localStorage.getItem('farmerAssistantLang') === 'mr' ? 'mr-IN'
+                    : localStorage.getItem('farmerAssistantLang') === 'hi' ? 'hi-IN'
+                    : 'en-IN';
+        window.speechSynthesis.speak(utter);
+      },
+      startListening() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          document.getElementById('assistantCommandResult').textContent = 'Speech recognition not supported in this browser.';
+          return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = localStorage.getItem('farmerAssistantLang') === 'mr' ? 'mr-IN'
+                         : localStorage.getItem('farmerAssistantLang') === 'hi' ? 'hi-IN'
+                         : 'en-IN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = (event) => {
+          const command = event.results[0][0].transcript.toLowerCase();
+          const target = document.getElementById('assistantCommandResult');
+
+          if (command.includes('predict') || command.includes('crop')) {
+            target.textContent = `Command received: ${command}`;
+            runPrediction();
+          } else if (command.includes('weather')) {
+            target.textContent = `Weather command: ${command}`;
+          } else if (command.includes('scheme')) {
+            target.textContent = `Scheme command: ${command}`;
+          } else if (command.includes('disease')) {
+            target.textContent = `Disease command: ${command}`;
+          } else if (command.includes('market')) {
+            target.textContent = `Market command: ${command}`;
+          } else {
+            target.textContent = `Heard: ${command}`;
+          }
         };
 
-        let latestPrediction = null;
-
-        const predictionTranslations = {
-            en: {
-                predHeroTitle: 'Live crop prediction for smarter farming decisions',
-                predHeroText: 'Use crop, district, area, rainfall, and price signals to estimate profit and risk. Voice assistant can read results aloud.',
-                predInputsTitle: 'Prediction Inputs',
-                predCropLabel: 'Crop',
-                predDistrictLabel: 'District',
-                predAreaLabel: 'Area',
-                predPriceLabel: 'Market Price',
-                predButton: 'Predict',
-                predProfitTitle: 'Expected Profit',
-                predRiskTitle: 'Risk Level',
-                predVoiceTitle: 'Voice Assistant',
-                predVoiceText: 'Read prediction aloud for farmers who prefer listening.',
-                predReadBtn: 'Read Result',
-                predListenBtn: '🎙 Speak',
-                predStopBtn: 'Stop',
-                predRecTitle: 'Recommendations',
-                predHistoryTitle: 'Saved Farmer History'
-            },
-            mr: {
-                predHeroTitle: 'शेतीसाठी थेट पीक अंदाज',
-                predHeroText: 'पीक, जिल्हा, क्षेत्र, पाऊस आणि बाजारभाव वापरून नफा व जोखीम अंदाज मिळवा.',
-                predInputsTitle: 'अंदाजासाठी माहिती',
-                predCropLabel: 'पीक',
-                predDistrictLabel: 'जिल्हा',
-                predAreaLabel: 'क्षेत्र',
-                predPriceLabel: 'बाजारभाव',
-                predButton: 'अंदाज काढा',
-                predProfitTitle: 'अपेक्षित नफा',
-                predRiskTitle: 'जोखीम पातळी',
-                predVoiceTitle: 'आवाज सहाय्यक',
-                predVoiceText: 'शेतकऱ्यांसाठी अंदाज मोठ्याने वाचून सांगतो.',
-                predReadBtn: 'निकाल वाचा',
-                predListenBtn: '🎙 बोला',
-                predStopBtn: 'थांबवा',
-                predRecTitle: 'शिफारसी',
-                predHistoryTitle: 'सेव्ह केलेला शेतकरी इतिहास'
-            },
-            hi: {
-                predHeroTitle: 'बेहतर खेती के लिए लाइव फसल भविष्यवाणी',
-                predHeroText: 'फसल, जिला, क्षेत्र, बारिश और बाजार भाव से लाभ और जोखिम का अनुमान पाएं।',
-                predInputsTitle: 'भविष्यवाणी जानकारी',
-                predCropLabel: 'फसल',
-                predDistrictLabel: 'जिला',
-                predAreaLabel: 'क्षेत्र',
-                predPriceLabel: 'बाजार भाव',
-                predButton: 'भविष्यवाणी करें',
-                predProfitTitle: 'अनुमानित लाभ',
-                predRiskTitle: 'जोखिम स्तर',
-                predVoiceTitle: 'आवाज सहायक',
-                predVoiceText: 'किसानों के लिए परिणाम बोलकर सुनाता है।',
-                predReadBtn: 'परिणाम सुनें',
-                predListenBtn: '🎙 बोलें',
-                predStopBtn: 'रोकें',
-                predRecTitle: 'सिफारिशें',
-                predHistoryTitle: 'सेव किसान इतिहास'
-            }
+        recognition.onerror = () => {
+          document.getElementById('assistantCommandResult').textContent = 'Voice input failed.';
         };
 
-        function changePageLanguage(lang) {
-            localStorage.setItem('farmerAssistantLang', lang);
-            const dict = predictionTranslations[lang] || predictionTranslations.en;
-            Object.entries(dict).forEach(([id, text]) => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = text;
-            });
+        recognition.start();
+      },
+      stop() {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      },
+      saveHistory,
+      clearHistory
+    };
+
+    function getPredictionSpeech() {
+      if (!latestPrediction) {
+        return 'Please select crop, district, area, and click predict.';
+      }
+      return `${latestPrediction.crop} in ${latestPrediction.district}. Expected profit is rupees ${Math.round(latestPrediction.profit)}. Risk level is ${latestPrediction.riskLevel}. Expected yield is ${latestPrediction.estimatedYield.toFixed(1)} quintal.`;
+    }
+
+    async function runPrediction() {
+      const crop = document.getElementById('cropSelect')?.value;
+      const district = document.getElementById('districtSelect')?.value;
+      const area = Number(document.getElementById('areaInput')?.value || 1);
+      const marketPrice = Number(document.getElementById('priceInput')?.value || 4200);
+
+      if (!crop || !district) {
+        alert('Please select crop and district');
+        return;
+      }
+
+      try {
+        const weather = await fetchLiveWeather(district);
+        const rainfall = Number(weather.precipitation || 800);
+        const temperature = Number(weather.temperature_2m || 28);
+
+        const prediction = await predictProfit(crop, district, rainfall, temperature, area, marketPrice);
+        const profit = Number(prediction.profit || 0);
+
+        const estimatedYield =
+          area * (
+            crop.toLowerCase() === 'sugarcane' ? 350 :
+            crop.toLowerCase() === 'tomato' ? 180 :
+            crop.toLowerCase() === 'onion' ? 120 :
+            crop.toLowerCase() === 'cotton' ? 18 :
+            crop.toLowerCase() === 'soybean' ? 12 :
+            crop.toLowerCase() === 'wheat' ? 22 : 20
+          );
+
+        const riskScore = Math.min(
+          0.95,
+          0.25 + (rainfall > 20 ? 0.18 : 0.08) + (temperature > 34 ? 0.18 : 0.05)
+        );
+        const riskLevel = riskScore > 0.62 ? 'High' : riskScore > 0.42 ? 'Medium' : 'Low';
+        const confidence = Math.max(0.70, 1 - riskScore / 2);
+
+        latestPrediction = {
+          crop,
+          district,
+          area,
+          marketPrice,
+          profit,
+          estimatedYield,
+          riskScore,
+          riskLevel,
+          confidence,
+          weather
+        };
+
+        document.getElementById('profitValue').textContent = `Rs ${Math.round(profit).toLocaleString('en-IN')}`;
+        document.getElementById('yieldValue').textContent = `Yield: ${estimatedYield.toFixed(1)} qtl`;
+        document.getElementById('confidenceValue').textContent = `Confidence: ${(confidence * 100).toFixed(0)}%`;
+
+        const riskEl = document.getElementById('riskValue');
+        riskEl.textContent = riskLevel;
+        riskEl.className = `metric risk-${riskLevel.toLowerCase()}`;
+
+        document.getElementById('riskScoreValue').textContent = `Score: ${(riskScore * 100).toFixed(0)}/100`;
+        document.getElementById('weatherValue').textContent =
+          `Weather: ${weather.temperature_2m || '--'}°C, humidity ${weather.relative_humidity_2m || '--'}%`;
+
+        const recommendations = [
+          profit > 0
+            ? 'Profit is positive. Plan selling when mandi price is strong.'
+            : 'Profit is low or negative. Reduce input cost or wait for better market price.',
+          riskLevel === 'High'
+            ? 'High risk detected. Watch rainfall, disease spread, and market fluctuations carefully.'
+            : 'Risk is manageable. Continue regular monitoring of weather and crop health.',
+          'Save this prediction in farmer history for future comparison.'
+        ];
+
+        document.getElementById('recommendations').innerHTML = recommendations.map(r => `<div>${r}</div>`).join('');
+        FarmerAssistant.saveHistory(
+          'Prediction',
+          `${crop} in ${district}: profit Rs ${Math.round(profit).toLocaleString('en-IN')}, risk ${riskLevel}`
+        );
+      } catch (error) {
+        console.error('Prediction error:', error);
+        alert(`Prediction failed: ${error.message}`);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedLang = localStorage.getItem('farmerAssistantLang') || 'en';
+      const languageSelect = document.getElementById('languageSelect');
+      if (languageSelect) languageSelect.value = savedLang;
+      changePageLanguage(savedLang);
+      updateAuthUI();
+      renderHistory();
+
+      const authForm = document.getElementById('authForm');
+      if (authForm) authForm.addEventListener('submit', handleLogin);
+
+      window.addEventListener('click', function (event) {
+        const modal = document.getElementById('loginModal');
+        if (modal && event.target === modal) {
+          closeLoginModal();
         }
-
-        async function fetchLiveWeather(district) {
-            const coords = {
-                Pune: [18.5204, 73.8567],
-                Nashik: [19.9975, 73.7898],
-                Nagpur: [21.1458, 79.0882],
-                Kolhapur: [16.7050, 73.7421],
-                Sangli: [16.8500, 73.9167]
-            };
-            const [lat, lon] = coords[district] || coords.Pune;
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation&timezone=Asia%2FKolkata`;
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.current || {};
-        }
-
-        async function runPrediction() {
-            const crop = document.getElementById('cropSelect').value;
-            const district = document.getElementById('districtSelect').value;
-            const area = Number(document.getElementById('areaInput').value || 1);
-            const price = Number(document.getElementById('priceInput').value || 4200);
-            const profile = cropProfiles[crop];
-
-            let weather = {};
-            try {
-                weather = await fetchLiveWeather(district);
-            } catch {
-                weather = { temperature_2m: 29, relative_humidity_2m: 70, precipitation: 0 };
-            }
-
-            const weatherRisk = Math.min(0.3, Number(weather.precipitation || 0) / 30);
-            const yieldQtl = profile.yield * area;
-            const revenue = yieldQtl * price;
-            const cost = profile.cost * area;
-            const profit = revenue - cost;
-            const riskScore = Math.min(0.95, profile.risk + weatherRisk);
-            const riskLevel = riskScore > .62 ? 'High' : riskScore > .42 ? 'Medium' : 'Low';
-            const confidence = Math.max(.68, 1 - riskScore / 2);
-
-            latestPrediction = { crop, district, area, price, yieldQtl, profit, riskScore, riskLevel, confidence, weather };
-
-            document.getElementById('profitValue').textContent = `Rs ${Math.round(profit).toLocaleString('en-IN')}`;
-            document.getElementById('yieldValue').textContent = `Yield: ${yieldQtl.toFixed(1)} qtl`;
-            document.getElementById('confidenceValue').textContent = `Confidence: ${(confidence * 100).toFixed(0)}%`;
-            const riskEl = document.getElementById('riskValue');
-            riskEl.textContent = riskLevel;
-            riskEl.className = `metric risk-${riskLevel.toLowerCase()}`;
-            document.getElementById('riskScoreValue').textContent = `Score: ${(riskScore * 100).toFixed(0)}/100`;
-            document.getElementById('weatherValue').textContent = `Weather: ${weather.temperature_2m || '--'} C, humidity ${weather.relative_humidity_2m || '--'}%`;
-
-            const recs = [
-                profit > 0 ? 'Profit is positive. Plan selling when mandi price is strong.' : 'Profit is weak. Reduce input cost or wait for better market price.',
-                riskLevel === 'High' ? 'High risk: check rainfall, pest control, and avoid unnecessary spending.' : 'Risk is manageable. Continue monitoring weather and market price.',
-                'Save this prediction in farmer history for future comparison.'
-            ];
-            document.getElementById('recommendations').innerHTML = recs.map(r => `<div>${r}</div>`).join('');
-            FarmerAssistant.saveHistory('Prediction', `${crop} in ${district}: profit Rs ${Math.round(profit).toLocaleString('en-IN')}, risk ${riskLevel}`);
-        }
-
-        function getPredictionSpeech() {
-            if (!latestPrediction) return 'Please select crop, district, area, and click predict.';
-            return `${latestPrediction.crop} in ${latestPrediction.district}. Expected profit is rupees ${Math.round(latestPrediction.profit)}. Risk level is ${latestPrediction.riskLevel}. Expected yield is ${latestPrediction.yieldQtl.toFixed(1)} quintal.`;
-        }
-    </script>
+      });
+    });
+  </script>
 </body>
 </html>
