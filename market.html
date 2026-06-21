@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Prices | AgriGuard Maharashtra</title>
+
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+.page-header{
+    background:linear-gradient(135deg,#166534,#15803D);
+    color:white;
+    padding:60px 20px;
+    text-align:center;
+}
+
+.market-container{
+    max-width:1200px;
+    margin:auto;
+    padding:30px 20px;
+}
+
+.filters{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+    margin-bottom:25px;
+}
+
+.filters select,
+.filters button{
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ddd;
+}
+
+.market-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:20px;
+}
+
+.market-card{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.08);
+    border-left:5px solid #16A34A;
+}
+
+.market-card h3{
+    color:#166534;
+    margin-bottom:10px;
+}
+
+.price{
+    font-size:30px;
+    font-weight:bold;
+    color:#15803D;
+}
+
+.info{
+    margin-top:10px;
+    color:#666;
+}
+
+.chart-card{
+    background:white;
+    margin-top:30px;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.08);
+}
+
+.loading{
+    text-align:center;
+    padding:20px;
+    display:none;
+}
+
+footer{
+    background:#166534;
+    color:white;
+    text-align:center;
+    padding:20px;
+    margin-top:50px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<header class="navbar">
+<div class="container nav-inner">
+
+<div class="logo">
+🌾 AgriGuard Maharashtra
+</div>
+
+<nav class="nav-links">
+<a href="index.html">Dashboard</a>
+<a href="market.html" class="active">Market</a>
+<a href="weather.html">Weather</a>
+<a href="news.html">News</a>
+<a href="disease.html">Disease</a>
+</nav>
+
+</div>
+</header>
+
+<!-- Hero -->
+<section class="page-header">
+<h1>📈 Maharashtra Bajar Bhav</h1>
+<p>Live Mandi Rates Across Maharashtra</p>
+</section>
+
+<div class="market-container">
+
+<!-- Filters -->
+<div class="filters">
+
+<select id="district">
+<option value="">Select District</option>
+<option>Pune</option>
+<option>Nashik</option>
+<option>Nagpur</option>
+<option>Kolhapur</option>
+<option>Sangli</option>
+<option>Satara</option>
+<option>Solapur</option>
+</select>
+
+<select id="crop">
+<option value="">Select Crop</option>
+<option>Onion</option>
+<option>Soybean</option>
+<option>Cotton</option>
+<option>Tomato</option>
+<option>Sugarcane</option>
+<option>Wheat</option>
+<option>Rice</option>
+</select>
+
+<button onclick="loadMarketData()">
+🔄 Refresh
+</button>
+
+</div>
+
+<div id="loading" class="loading">
+Loading Live Market Prices...
+</div>
+
+<!-- Market Cards -->
+<div class="market-grid" id="marketGrid">
+
+</div>
+
+<!-- Chart -->
+<div class="chart-card">
+<h3>30 Day Price Trend</h3>
+<canvas id="priceChart"></canvas>
+</div>
+
+</div>
+
+<footer>
+© 2026 AgriGuard Maharashtra
+</footer>
+
+<script>
+
+let chart;
+
+async function loadMarketData(){
+
+document.getElementById("loading").style.display="block";
+
+try{
+
+/*
+Backend Endpoint
+
+GET /api/market-prices
+
+Expected Response:
+
+[
+{
+market:"Lasalgaon",
+crop:"Onion",
+price:2200,
+min:2000,
+max:2500,
+updated:"10:30 AM"
+}
+]
+*/
+
+const response = await fetch(
+"http://localhost:8000/api/market-prices"
+);
+
+const data = await response.json();
+
+showCards(data);
+createChart(data);
+
+}
+catch(err){
+console.error(err);
+}
+
+document.getElementById("loading").style.display="none";
+}
+
+function showCards(data){
+
+const grid=document.getElementById("marketGrid");
+
+grid.innerHTML="";
+
+data.forEach(item=>{
+
+grid.innerHTML += `
+<div class="market-card">
+
+<h3>${item.market}</h3>
+
+<div class="price">
+₹${item.price}
+</div>
+
+<div class="info">
+Crop : ${item.crop}
+</div>
+
+<div class="info">
+Min : ₹${item.min}
+</div>
+
+<div class="info">
+Max : ₹${item.max}
+</div>
+
+<div class="info">
+Updated : ${item.updated}
+</div>
+
+</div>
+`;
+
+});
+
+}
+
+function createChart(data){
+
+const ctx=document.getElementById('priceChart');
+
+if(chart){
+chart.destroy();
+}
+
+chart=new Chart(ctx,{
+type:'bar',
+data:{
+labels:data.map(x=>x.crop),
+datasets:[{
+label:'Price',
+data:data.map(x=>x.price)
+}]
+}
+});
+
+}
+
+loadMarketData();
+
+</script>
+
+</body>
+</html>
