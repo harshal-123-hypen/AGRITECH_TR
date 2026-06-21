@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Crop Predictions - Maharashtra Agriculture</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .prediction-hero {
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            background:
+                linear-gradient(112deg, rgba(6,25,20,.9), rgba(17,92,57,.66), rgba(246,184,75,.18)),
+                url("a0c477f111c3b5f2a0177ffa79d3ac75.jpg") center/cover;
+        }
+        .prediction-hero video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .38;
+        }
+        .prediction-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(105deg, rgba(7,27,22,.9), rgba(7,27,22,.52), transparent),
+                repeating-linear-gradient(170deg, transparent 0 36px, rgba(255,255,255,.08) 37px 40px);
+            animation: fieldDrift 18s linear infinite;
+        }
+        .prediction-hero-content {
+            position: relative;
+            z-index: 1;
+            color: white;
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+        .prediction-hero h1 {
+            font-size: clamp(2.4rem, 6vw, 5rem);
+            line-height: 1.04;
+            max-width: 780px;
+        }
+        .prediction-panel {
+            margin-top: -72px;
+            position: relative;
+            z-index: 3;
+        }
+        .prediction-form {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto;
+            gap: 12px;
+            align-items: end;
+        }
+        .prediction-form select,
+        .prediction-form input {
+            width: 100%;
+        }
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-top: 22px;
+        }
+        .metric {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--green);
+            margin-top: 8px;
+        }
+        .risk-low { color: #15803d; }
+        .risk-medium { color: #b8860b; }
+        .risk-high { color: #c0392b; }
+        .recommendation-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .recommendation-list div {
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(223,247,233,.76);
+            border: 1px solid rgba(31,138,91,.12);
+        }
+        @media(max-width: 980px) {
+            .prediction-form,
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+            .prediction-panel {
+                margin-top: -44px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="container">
+            <div class="logo">Maharashtra Agriculture</div>
+            <nav class="nav-menu">
+                <a href="index.html">Dashboard</a>
+                <a href="market.html">Market Prices</a>
+                <a href="disease.html">Disease Detection</a>
+                <a href="predictions.html" class="active">Predictions</a>
+                <a href="equipment.html">Equipment</a>
+            </nav>
+            <div class="auth-menu">
+                <select id="languageSelect" onchange="changePageLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="mr">Marathi</option>
+                    <option value="hi">Hindi</option>
+                </select>
+                <button class="btn btn-primary" onclick="FarmerAssistant.speak(getPredictionSpeech())">Voice</button>
+            </div>
+        </div>
+    </div>
+
+    <section class="prediction-hero">
+        <video autoplay muted loop playsinline poster="a0c477f111c3b5f2a0177ffa79d3ac75.jpg">
+            <source src="assets/farm-bg.mp4" type="video/mp4">
+        </video>
+        <div class="prediction-hero-content">
+            <span class="hero-badge">Profit, risk, rainfall and market intelligence</span>
+            <h1 id="predHeroTitle">Live crop prediction for smarter farming decisions</h1>
+            <p id="predHeroText">Use crop, district, area, rainfall, and price signals to estimate profit and risk. Voice assistant can read results aloud.</p>
+        </div>
+    </section>
+
+    <main class="container">
+        <section class="card prediction-panel">
+            <h2 id="predInputsTitle">Prediction Inputs</h2>
+            <div class="prediction-form">
+                <div>
+                    <label id="predCropLabel">Crop</label>
+                    <select id="cropSelect">
+                        <option value="Soybean">Soybean</option>
+                        <option value="Cotton">Cotton</option>
+                        <option value="Onion">Onion</option>
+                        <option value="Sugarcane">Sugarcane</option>
+                        <option value="Tomato">Tomato</option>
+                        <option value="Wheat">Wheat</option>
+                    </select>
+                </div>
+                <div>
+                    <label id="predDistrictLabel">District</label>
+                    <select id="districtSelect">
+                        <option value="Pune">Pune</option>
+                        <option value="Nashik">Nashik</option>
+                        <option value="Nagpur">Nagpur</option>
+                        <option value="Kolhapur">Kolhapur</option>
+                        <option value="Sangli">Sangli</option>
+                    </select>
+                </div>
+                <div>
+                    <label id="predAreaLabel">Area</label>
+                    <input id="areaInput" type="number" min="0.1" step="0.1" value="1" placeholder="Hectares">
+                </div>
+                <div>
+                    <label id="predPriceLabel">Market Price</label>
+                    <input id="priceInput" type="number" min="1" value="4200" placeholder="Rs / qtl">
+                </div>
+                <button class="btn btn-primary" id="predButton" onclick="runPrediction()">Predict</button>
+            </div>
+        </section>
+
+        <section class="result-grid">
+            <article class="card">
+                <h3 id="predProfitTitle">Expected Profit</h3>
+                <div class="metric" id="profitValue">Rs --</div>
+                <p id="yieldValue">Yield: --</p>
+                <p id="confidenceValue">Confidence: --</p>
+            </article>
+            <article class="card">
+                <h3 id="predRiskTitle">Risk Level</h3>
+                <div class="metric" id="riskValue">--</div>
+                <p id="riskScoreValue">Score: --</p>
+                <p id="weatherValue">Weather: checking live signal</p>
+            </article>
+            <article class="card">
+                <h3 id="predVoiceTitle">Voice Assistant</h3>
+                <p id="predVoiceText">Read prediction aloud for farmers who prefer listening.</p>
+                <button class="btn btn-primary" id="predReadBtn" onclick="FarmerAssistant.speak(getPredictionSpeech())">Read Result</button>
+                <button class="btn btn-primary" id="predListenBtn" onclick="FarmerAssistant.startListening()">🎙 Speak</button>
+                <button class="btn btn-secondary" id="predStopBtn" onclick="FarmerAssistant.stop()">Stop</button>
+                <p class="voice-command-result" id="assistantCommandResult">Say crop prediction, equipment, weather, market, disease, or scheme.</p>
+            </article>
+        </section>
+
+        <section class="card">
+            <h3 id="predRecTitle">Recommendations</h3>
+            <div id="recommendations" class="recommendation-list">
+                <div>Enter details and click Predict.</div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h3 id="predHistoryTitle">Saved Farmer History</h3>
+            <div id="farmerHistoryList"></div>
+            <button class="btn btn-secondary" onclick="FarmerAssistant.clearHistory()">Clear History</button>
+        </section>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/voice-assistant.js"></script>
+    <script>
+        const cropProfiles = {
+            Soybean: { yield: 17, cost: 31000, risk: .34 },
+            Cotton: { yield: 14, cost: 42000, risk: .46 },
+            Onion: { yield: 225, cost: 78000, risk: .52 },
+            Sugarcane: { yield: 820, cost: 125000, risk: .38 },
+            Tomato: { yield: 260, cost: 92000, risk: .58 },
+            Wheat: { yield: 32, cost: 36000, risk: .29 }
+        };
+
+        let latestPrediction = null;
+
+        const predictionTranslations = {
+            en: {
+                predHeroTitle: 'Live crop prediction for smarter farming decisions',
+                predHeroText: 'Use crop, district, area, rainfall, and price signals to estimate profit and risk. Voice assistant can read results aloud.',
+                predInputsTitle: 'Prediction Inputs',
+                predCropLabel: 'Crop',
+                predDistrictLabel: 'District',
+                predAreaLabel: 'Area',
+                predPriceLabel: 'Market Price',
+                predButton: 'Predict',
+                predProfitTitle: 'Expected Profit',
+                predRiskTitle: 'Risk Level',
+                predVoiceTitle: 'Voice Assistant',
+                predVoiceText: 'Read prediction aloud for farmers who prefer listening.',
+                predReadBtn: 'Read Result',
+                predListenBtn: '🎙 Speak',
+                predStopBtn: 'Stop',
+                predRecTitle: 'Recommendations',
+                predHistoryTitle: 'Saved Farmer History'
+            },
+            mr: {
+                predHeroTitle: 'शेतीसाठी थेट पीक अंदाज',
+                predHeroText: 'पीक, जिल्हा, क्षेत्र, पाऊस आणि बाजारभाव वापरून नफा व जोखीम अंदाज मिळवा.',
+                predInputsTitle: 'अंदाजासाठी माहिती',
+                predCropLabel: 'पीक',
+                predDistrictLabel: 'जिल्हा',
+                predAreaLabel: 'क्षेत्र',
+                predPriceLabel: 'बाजारभाव',
+                predButton: 'अंदाज काढा',
+                predProfitTitle: 'अपेक्षित नफा',
+                predRiskTitle: 'जोखीम पातळी',
+                predVoiceTitle: 'आवाज सहाय्यक',
+                predVoiceText: 'शेतकऱ्यांसाठी अंदाज मोठ्याने वाचून सांगतो.',
+                predReadBtn: 'निकाल वाचा',
+                predListenBtn: '🎙 बोला',
+                predStopBtn: 'थांबवा',
+                predRecTitle: 'शिफारसी',
+                predHistoryTitle: 'सेव्ह केलेला शेतकरी इतिहास'
+            },
+            hi: {
+                predHeroTitle: 'बेहतर खेती के लिए लाइव फसल भविष्यवाणी',
+                predHeroText: 'फसल, जिला, क्षेत्र, बारिश और बाजार भाव से लाभ और जोखिम का अनुमान पाएं।',
+                predInputsTitle: 'भविष्यवाणी जानकारी',
+                predCropLabel: 'फसल',
+                predDistrictLabel: 'जिला',
+                predAreaLabel: 'क्षेत्र',
+                predPriceLabel: 'बाजार भाव',
+                predButton: 'भविष्यवाणी करें',
+                predProfitTitle: 'अनुमानित लाभ',
+                predRiskTitle: 'जोखिम स्तर',
+                predVoiceTitle: 'आवाज सहायक',
+                predVoiceText: 'किसानों के लिए परिणाम बोलकर सुनाता है।',
+                predReadBtn: 'परिणाम सुनें',
+                predListenBtn: '🎙 बोलें',
+                predStopBtn: 'रोकें',
+                predRecTitle: 'सिफारिशें',
+                predHistoryTitle: 'सेव किसान इतिहास'
+            }
+        };
+
+        function changePageLanguage(lang) {
+            localStorage.setItem('farmerAssistantLang', lang);
+            const dict = predictionTranslations[lang] || predictionTranslations.en;
+            Object.entries(dict).forEach(([id, text]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = text;
+            });
+        }
+
+        async function fetchLiveWeather(district) {
+            const coords = {
+                Pune: [18.5204, 73.8567],
+                Nashik: [19.9975, 73.7898],
+                Nagpur: [21.1458, 79.0882],
+                Kolhapur: [16.7050, 73.7421],
+                Sangli: [16.8500, 73.9167]
+            };
+            const [lat, lon] = coords[district] || coords.Pune;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation&timezone=Asia%2FKolkata`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.current || {};
+        }
+
+        async function runPrediction() {
+            const crop = document.getElementById('cropSelect').value;
+            const district = document.getElementById('districtSelect').value;
+            const area = Number(document.getElementById('areaInput').value || 1);
+            const price = Number(document.getElementById('priceInput').value || 4200);
+            const profile = cropProfiles[crop];
+
+            let weather = {};
+            try {
+                weather = await fetchLiveWeather(district);
+            } catch {
+                weather = { temperature_2m: 29, relative_humidity_2m: 70, precipitation: 0 };
+            }
+
+            const weatherRisk = Math.min(0.3, Number(weather.precipitation || 0) / 30);
+            const yieldQtl = profile.yield * area;
+            const revenue = yieldQtl * price;
+            const cost = profile.cost * area;
+            const profit = revenue - cost;
+            const riskScore = Math.min(0.95, profile.risk + weatherRisk);
+            const riskLevel = riskScore > .62 ? 'High' : riskScore > .42 ? 'Medium' : 'Low';
+            const confidence = Math.max(.68, 1 - riskScore / 2);
+
+            latestPrediction = { crop, district, area, price, yieldQtl, profit, riskScore, riskLevel, confidence, weather };
+
+            document.getElementById('profitValue').textContent = `Rs ${Math.round(profit).toLocaleString('en-IN')}`;
+            document.getElementById('yieldValue').textContent = `Yield: ${yieldQtl.toFixed(1)} qtl`;
+            document.getElementById('confidenceValue').textContent = `Confidence: ${(confidence * 100).toFixed(0)}%`;
+            const riskEl = document.getElementById('riskValue');
+            riskEl.textContent = riskLevel;
+            riskEl.className = `metric risk-${riskLevel.toLowerCase()}`;
+            document.getElementById('riskScoreValue').textContent = `Score: ${(riskScore * 100).toFixed(0)}/100`;
+            document.getElementById('weatherValue').textContent = `Weather: ${weather.temperature_2m || '--'} C, humidity ${weather.relative_humidity_2m || '--'}%`;
+
+            const recs = [
+                profit > 0 ? 'Profit is positive. Plan selling when mandi price is strong.' : 'Profit is weak. Reduce input cost or wait for better market price.',
+                riskLevel === 'High' ? 'High risk: check rainfall, pest control, and avoid unnecessary spending.' : 'Risk is manageable. Continue monitoring weather and market price.',
+                'Save this prediction in farmer history for future comparison.'
+            ];
+            document.getElementById('recommendations').innerHTML = recs.map(r => `<div>${r}</div>`).join('');
+            FarmerAssistant.saveHistory('Prediction', `${crop} in ${district}: profit Rs ${Math.round(profit).toLocaleString('en-IN')}, risk ${riskLevel}`);
+        }
+
+        function getPredictionSpeech() {
+            if (!latestPrediction) return 'Please select crop, district, area, and click predict.';
+            return `${latestPrediction.crop} in ${latestPrediction.district}. Expected profit is rupees ${Math.round(latestPrediction.profit)}. Risk level is ${latestPrediction.riskLevel}. Expected yield is ${latestPrediction.yieldQtl.toFixed(1)} quintal.`;
+        }
+    </script>
+</body>
+</html>
