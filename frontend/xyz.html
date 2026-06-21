@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Weather App</title>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body{
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .card{
+            width:380px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(15px);
+            padding:30px;
+            border-radius:20px;
+            color:white;
+            text-align:center;
+            box-shadow:0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        h1{
+            margin-bottom:20px;
+        }
+
+        button{
+            padding:12px 25px;
+            border:none;
+            border-radius:10px;
+            background:white;
+            color:#0077ff;
+            font-size:16px;
+            font-weight:bold;
+            cursor:pointer;
+            transition:0.3s;
+        }
+
+        button:hover{
+            transform:scale(1.05);
+        }
+
+        .temp{
+            font-size:50px;
+            font-weight:bold;
+            margin-top:20px;
+        }
+
+        .city{
+            font-size:28px;
+            margin-top:10px;
+        }
+
+        .weather{
+            font-size:20px;
+            margin-top:10px;
+        }
+
+        .details{
+            display:flex;
+            justify-content:space-between;
+            margin-top:25px;
+        }
+
+        .box{
+            width:45%;
+            background:rgba(255,255,255,0.2);
+            padding:15px;
+            border-radius:15px;
+        }
+
+        img{
+            width:100px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>🌦 Weather App</h1>
+
+        <button onclick="getWeather()">
+            Get Live Weather
+        </button>
+
+        <div id="weatherData">
+            <p style="margin-top:20px;">
+                Click button to see weather
+            </p>
+        </div>
+    </div>
+
+<script>
+
+const API_KEY = "b9a90af29fb656c2da4f05f9275bb548";
+
+function getWeather(){
+
+    if(navigator.geolocation){
+
+        navigator.geolocation.getCurrentPosition(async(position)=>{
+
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            const url =
+            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
+
+            try{
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const icon =
+                `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+
+                document.getElementById("weatherData").innerHTML = `
+
+                    <img src="${icon}">
+
+                    <div class="temp">
+                        ${Math.round(data.main.temp)}°C
+                    </div>
+
+                    <div class="city">
+                        ${data.name}
+                    </div>
+
+                    <div class="weather">
+                        ${data.weather[0].description}
+                    </div>
+
+                    <div class="details">
+
+                        <div class="box">
+                            <h3>Humidity</h3>
+                            <p>${data.main.humidity}%</p>
+                        </div>
+
+                        <div class="box">
+                            <h3>Wind</h3>
+                            <p>${data.wind.speed} m/s</p>
+                        </div>
+
+                    </div>
+                `;
+
+            }
+            catch(error){
+                alert("Error fetching weather data");
+            }
+
+        });
+
+    }
+    else{
+        alert("Geolocation not supported");
+    }
+}
+
+</script>
+
+</body>
+</html>
