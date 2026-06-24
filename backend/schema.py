@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List, Dict, Any
 
 
@@ -32,6 +32,8 @@ class DiseaseDetectionDetailedResponse(BaseModel):
 # =========================================================
 
 class GovernmentSchemeResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: Optional[int] = None
     name: str
     description: str
@@ -39,9 +41,6 @@ class GovernmentSchemeResponse(BaseModel):
     eligibility: str
     benefits: str
     application_link: Optional[str] = None
-
-    class Config:
-        from_attributes = True   # जर error आला तर orm_mode = True कर
 
 
 class PopularSchemeItem(BaseModel):

@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from database import get_db
 from models import User
-from schemas import UserCreate, UserResponse, Token, UserFavoriteRequest, UserFavoriteResponse
-from auth import hash_password, verify_password, create_access_token, get_current_active_user
+from ml.schemas import UserCreate, UserResponse, Token, UserFavoriteRequest, UserFavoriteResponse
+from ml.auth import hash_password, verify_password, create_access_token, get_current_active_user
 import logging
 
 router = APIRouter()

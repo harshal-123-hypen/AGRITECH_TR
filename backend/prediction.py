@@ -2,14 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Prediction, PredictionType
-from schemas import (
+from ml.schemas import (
     ProfitPredictionRequest, ProfitPredictionResponse,
     RiskPredictionRequest, RiskPredictionResponse
 )
 from ml.profit_predictor import ProfitPredictor
 from ml.risk_predictor import RiskPredictor
-from api.weather import get_current_weather
-from api.market import get_market_prices
+from weather import get_current_weather
+from market import get_market_prices
 import logging
 import json
 

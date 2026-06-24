@@ -5,8 +5,8 @@ import aiohttp
 import logging
 from database import get_db
 from models import WeatherData
-from schemas import WeatherResponse
-from config import get_settings
+from ml.schemas import WeatherResponse
+from ml.config import get_settings
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

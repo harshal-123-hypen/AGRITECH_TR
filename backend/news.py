@@ -5,8 +5,8 @@ import aiohttp
 import logging
 from database import get_db
 from models import NewsArticle
-from schemas import NewsArticleResponse
-from config import get_settings
+from ml.schemas import NewsArticleResponse
+from ml.config import get_settings
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
