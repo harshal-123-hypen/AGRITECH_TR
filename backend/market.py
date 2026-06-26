@@ -155,4 +155,3 @@ async def cache_all_prices(db: Session = Depends(get_db)):
         "total_combinations": len(districts) * len(PRIMARY_CROPS),
         "errors": errors
     }
-s
