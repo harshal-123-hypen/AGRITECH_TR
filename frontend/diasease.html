@@ -1,132 +1,793 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Disease Detection - Maharashtra Agriculture</title>
-    <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disease Detection - Maharashtra Agriculture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6FAF1;
+    --panel:#FFFFFF;
+    --forest:#1F4D2C;
+    --ink:#16291B;
+    --leaf:#4F9456;
+    --leaf-light:#84C26E;
+    --sprout:#CFEAB6;
+    --soil:#7A5C3E;
+    --amber:#D99A3B;
+    --terracotta:#C1573F;
+    --line:#DCE8D1;
+    --shadow: 0 12px 30px -14px rgba(22,41,27,0.25);
+    --display: 'Fraunces', serif;
+    --body-font: 'Manrope', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--body-font);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  img{ max-width:100%; display:block; }
+  button{ font-family:inherit; cursor:pointer; }
+  select, input{ font-family:inherit; }
+  a{ color:inherit; }
+
+  :focus-visible{ outline:2px solid var(--leaf); outline-offset:3px; border-radius:4px; }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+
+  .container{ max-width:1080px; margin:0 auto; padding:0 24px; }
+
+  .icon-leaf{ width:1em; height:1em; flex:none; }
+  .icon-leaf .body{ fill:currentColor; }
+  .icon-leaf .vein{ stroke:var(--bg); stroke-width:1.1; fill:none; }
+
+  /* ---------- Navbar ---------- */
+  .navbar{
+    position:sticky; top:0; z-index:40;
+    background:rgba(246,250,241,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .navbar .container{
+    display:flex; align-items:center; justify-content:space-between;
+    height:72px; gap:24px;
+  }
+  .logo{
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--display); font-weight:600; font-size:1.15rem;
+    color:var(--forest); white-space:nowrap;
+  }
+  .logo .icon-leaf{ width:26px; height:26px; color:var(--leaf); }
+  .nav-menu{ display:flex; gap:28px; flex:1; justify-content:center; }
+  .nav-menu a{
+    text-decoration:none; color:var(--ink); font-weight:600; font-size:0.92rem;
+    padding:6px 2px; border-bottom:2px solid transparent; opacity:0.75;
+  }
+  .nav-menu a:hover{ opacity:1; }
+  .nav-menu a.active{ color:var(--forest); border-bottom-color:var(--leaf); opacity:1; }
+
+  .btn{
+    border:none; border-radius:999px; padding:10px 20px;
+    font-weight:700; font-size:0.88rem; transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-primary{ background:linear-gradient(135deg,var(--leaf),var(--forest)); color:#fff; box-shadow:0 8px 18px -8px rgba(31,77,44,0.55); }
+  .btn-secondary{ background:#fff; color:var(--forest); border:1.5px solid var(--line); }
+  .btn-ghost{ background:transparent; color:var(--forest); border:1.5px solid var(--leaf); }
+  .btn:disabled{ opacity:0.45; cursor:not-allowed; transform:none; }
+
+  /* ---------- Hero ---------- */
+  .hero-section{
+    position:relative; overflow:hidden;
+    padding:72px 0 88px;
+    background:linear-gradient(180deg,#EEF7E4 0%, var(--bg) 100%);
+  }
+  .hero-blob{
+    position:absolute; border-radius:50%; filter:blur(40px); opacity:0.55; z-index:0;
+  }
+  .hero-blob.b1{ width:380px; height:380px; background:var(--sprout); top:-160px; right:-100px; }
+  .hero-blob.b2{ width:260px; height:260px; background:var(--leaf-light); opacity:0.35; bottom:-140px; left:-80px; }
+  .hero-content{ position:relative; z-index:1; max-width:680px; margin:0 auto; text-align:center; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:0.74rem; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--forest); background:#fff; border:1px solid var(--line);
+    padding:6px 14px; border-radius:999px; margin-bottom:22px;
+  }
+  .hero-content h1{
+    font-family:var(--display); font-weight:600; font-size:clamp(2.1rem,4.2vw,3.1rem);
+    color:var(--forest); margin:0 0 16px; line-height:1.12;
+  }
+  .hero-content h1 em{ font-style:italic; color:var(--leaf); }
+  .hero-content p.lede{ font-size:1.05rem; color:#3A4F3D; margin:0 auto 28px; max-width:520px; }
+  .stat-row{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+  .stat-pill{
+    font-family:var(--mono); font-size:0.78rem; background:#fff; border:1px solid var(--line);
+    border-radius:999px; padding:8px 16px; color:var(--forest);
+  }
+  .stat-pill b{ color:var(--ink); }
+
+  /* ---------- Cards / grid ---------- */
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:24px; margin:0 0 24px; }
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    padding:28px; box-shadow:var(--shadow);
+  }
+  .card h3{ font-family:var(--display); font-weight:600; font-size:1.2rem; margin:0 0 18px; color:var(--forest); display:flex; align-items:center; gap:8px;}
+  .card h3 .icon-leaf{ color:var(--leaf); }
+
+  .field{ margin-top:16px; }
+  .field label{ display:block; font-size:0.82rem; font-weight:700; color:var(--forest); margin-bottom:6px; }
+  .field select{
+    width:100%; padding:11px 14px; border-radius:12px; border:1.5px solid var(--line);
+    background:#fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%231F4D2C" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>') no-repeat right 14px center;
+    appearance:none; -webkit-appearance:none; font-size:0.94rem; color:var(--ink);
+  }
+  .field select:focus{ border-color:var(--leaf); }
+
+  .upload-area{
+    position:relative; cursor:pointer; text-align:center; padding:34px 16px;
+    border:2px dashed var(--leaf-light);
+    border-radius:30% 70% 70% 30% / 30% 30% 70% 70%;
+    background:#F8FCF3; transition:border-color .15s ease, background .15s ease;
+  }
+  .upload-area:hover, .upload-area.dragover{ border-color:var(--leaf); background:#F1F9E8; }
+  .upload-icon{ width:46px; height:46px; margin:0 auto 12px; color:var(--leaf); }
+  .upload-area p{ margin:4px 0; font-weight:600; color:var(--forest); }
+  .upload-area p.small{ font-weight:400; color:#5C7660; font-size:0.82rem; }
+  .file-name{ margin-top:10px; font-family:var(--mono); font-size:0.78rem; color:var(--soil); word-break:break-all; }
+
+  .preview-box{
+    border:1px solid var(--line); border-radius:16px; overflow:hidden;
+    min-height:220px; display:flex; align-items:center; justify-content:center;
+    background:#F8FCF3;
+  }
+  .preview-box img{ width:100%; height:100%; object-fit:cover; }
+  .placeholder{ color:#6E8A72; font-size:0.9rem; text-align:center; padding:20px; }
+  .placeholder .icon-leaf{ width:38px; height:38px; color:var(--sprout); margin:0 auto 10px; }
+
+  /* ---------- Results ---------- */
+  .results-card{ margin-top:8px; }
+  .loading-state{
+    display:flex; flex-direction:column; align-items:center; gap:14px;
+    padding:40px 0; color:var(--forest); font-weight:600;
+  }
+  .scan-leaf{ position:relative; width:60px; height:60px; color:var(--leaf-light); overflow:hidden; border-radius:14px; }
+  .scan-leaf .icon-leaf{ width:60px; height:60px; }
+  .scan-line{
+    position:absolute; left:0; right:0; height:3px; background:var(--leaf);
+    top:0; box-shadow:0 0 12px 2px var(--leaf-light);
+    animation:scanmove 1.4s ease-in-out infinite;
+  }
+  @keyframes scanmove{ 0%{ top:0; } 50%{ top:54px; } 100%{ top:0; } }
+
+  .results-grid{ display:grid; grid-template-columns:auto 1fr; gap:32px; align-items:center; }
+  .gauge-wrap{ position:relative; width:150px; height:150px; flex:none; margin:0 auto; }
+  .gauge-wrap svg{ width:150px; height:150px; transform:rotate(-90deg); }
+  .gauge-track{ fill:none; stroke:var(--line); stroke-width:10; }
+  .gauge-fill{ fill:none; stroke:var(--leaf); stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1), stroke 0.3s ease; }
+  .gauge-label{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .gauge-number{ font-family:var(--mono); font-size:1.9rem; font-weight:500; color:var(--ink); }
+  .gauge-unit{ font-family:var(--mono); font-size:0.7rem; color:#5C7660; text-transform:uppercase; letter-spacing:0.06em; }
+
+  .diagnosis-name{ font-family:var(--display); font-style:italic; font-weight:600; font-size:1.5rem; color:var(--forest); margin:0 0 10px; }
+  .severity-pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--mono); font-size:0.74rem; letter-spacing:0.04em; text-transform:uppercase;
+    padding:5px 13px; border-radius:999px; font-weight:600; margin-bottom:14px;
+  }
+  .severity-low{ background:#E6F5DD; color:#2E6B2F; }
+  .severity-medium{ background:#FBEACB; color:#8A5A12; }
+  .severity-high{ background:#F6DAD3; color:#9C3A26; }
+
+  .treatment-block{ margin-top:8px; }
+  .treatment-block h4{ font-size:0.92rem; color:var(--forest); margin:0 0 6px; }
+  .treatment-block p{ margin:0; font-size:0.94rem; color:#33442F; }
+
+  .reco-list{ list-style:none; margin:16px 0 0; padding:0; display:grid; gap:10px; }
+  .reco-list li{ display:flex; gap:10px; align-items:flex-start; font-size:0.92rem; color:#33442F; }
+  .reco-list .icon-leaf{ width:16px; height:16px; color:var(--leaf); margin-top:3px; }
+
+  .district-note{
+    margin-top:22px; padding:14px 16px; border-radius:12px; background:#F2F8EC;
+    border:1px solid var(--line); font-size:0.85rem; color:#3A4F3D;
+  }
+
+  .results-footer{ display:flex; justify-content:flex-end; margin-top:22px; }
+
+  .results-divider{ border:none; border-top:1px solid var(--line); margin:26px 0; }
+
+  /* ---------- Toast ---------- */
+  .toast-container{ position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:10px; z-index:100; }
+  .toast{
+    background:var(--forest); color:#fff; padding:12px 18px; border-radius:12px;
+    font-size:0.88rem; box-shadow:var(--shadow); opacity:0; transform:translateY(8px);
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .toast.show{ opacity:1; transform:translateY(0); }
+  .toast.error{ background:var(--terracotta); }
+
+  /* ---------- Modal ---------- */
+  .modal{ display:none; position:fixed; inset:0; background:rgba(22,41,27,0.45); z-index:90; align-items:center; justify-content:center; }
+  .modal.open{ display:flex; }
+  .modal-content{
+    background:#fff; border-radius:18px; padding:32px; width:90%; max-width:380px; position:relative;
+    box-shadow:var(--shadow);
+  }
+  .modal-content h2{ font-family:var(--display); color:var(--forest); margin:0 0 18px; }
+  .modal-content input{
+    width:100%; padding:11px 14px; border-radius:12px; border:1.5px solid var(--line); margin-bottom:12px; font-size:0.94rem;
+  }
+  .modal-content input:focus{ border-color:var(--leaf); }
+  .close{ position:absolute; top:16px; right:18px; font-size:1.3rem; color:#6E8A72; background:none; border:none; }
+
+  footer{
+    text-align:center; padding:36px 0; color:#5C7660; font-size:0.84rem;
+    border-top:1px solid var(--line); margin-top:40px;
+  }
+  footer .icon-leaf{ width:14px; height:14px; color:var(--leaf); vertical-align:-2px; margin-right:4px; }
+
+  @media (max-width:760px){
+    .grid-2{ grid-template-columns:1fr; }
+    .results-grid{ grid-template-columns:1fr; text-align:center; }
+    .nav-menu{ display:none; }
+  }
+</style>
 </head>
 <body>
-    <div class="navbar">
-        <div class="container">
-            <div class="logo">🌾 Maharashtra Agriculture</div>
-            <nav class="nav-menu">
-                <a href="index.html">Dashboard</a>
-                <a href="market.html">Market Prices</a>
-                <a href="disease.html" class="active">Disease Detection</a>
-                <a href="predictions.html">Predictions</a>
-            </nav>
-            <div class="auth-menu">
-                <button onclick="openLoginModal()" id="loginBtn" class="btn btn-primary">Login</button>
-                <button onclick="logout()" id="logoutBtn" class="btn btn-secondary" style="display:none;">Logout</button>
-            </div>
-        </div>
+
+<div class="navbar">
+  <div class="container">
+    <div class="logo">
+      <svg class="icon-leaf" viewBox="0 0 24 24" aria-hidden="true"><path class="body" d="M12 21C12 21 4 16 4 9C4 5 7 2 12 2C17 2 20 5 20 9C20 16 12 21 12 21Z"/><path class="vein" d="M12 4 L12 19"/></svg>
+      Maharashtra Agriculture
+    </div>
+    <nav class="nav-menu">
+      <a href="index.html">Dashboard</a>
+      <a href="market.html">Market Prices</a>
+      <a href="disease.html" class="active">Disease Detection</a>
+      <a href="predictions.html">Predictions</a>
+    </nav>
+    <div class="auth-menu">
+      <button onclick="openLoginModal()" id="loginBtn" class="btn btn-secondary">Login</button>
+      <button onclick="logout()" id="logoutBtn" class="btn btn-ghost" style="display:none;">Logout</button>
+    </div>
+  </div>
+</div>
+
+<div class="hero-section">
+  <div class="hero-blob b1"></div>
+  <div class="hero-blob b2"></div>
+  <div class="container hero-content">
+    <span class="eyebrow">
+      <svg class="icon-leaf" viewBox="0 0 24 24" aria-hidden="true"><path class="body" d="M12 21C12 21 4 16 4 9C4 5 7 2 12 2C17 2 20 5 20 9C20 16 12 21 12 21Z"/><path class="vein" d="M12 4 L12 19"/></svg>
+      AI Leaf Scan
+    </span>
+    <h1>Spot it <em>before</em> it spreads.</h1>
+    <p class="lede">Upload a photo of an affected leaf and get a crop-specific diagnosis, severity reading, and treatment plan in seconds.</p>
+    <div class="stat-row">
+      <span class="stat-pill"><b>11</b> crops covered</span>
+      <span class="stat-pill"><b>5</b> Maharashtra districts</span>
+      <span class="stat-pill">scan in <b>&lt;2s</b></span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="grid-2">
+    <div class="card">
+      <h3>
+        <svg class="icon-leaf" viewBox="0 0 24 24" aria-hidden="true"><path class="body" d="M12 21C12 21 4 16 4 9C4 5 7 2 12 2C17 2 20 5 20 9C20 16 12 21 12 21Z"/><path class="vein" d="M12 4 L12 19"/></svg>
+        Upload a leaf photo
+      </h3>
+      <div class="upload-area" onclick="document.getElementById('imageInput').click()" id="uploadArea">
+        <svg class="upload-icon icon-leaf" viewBox="0 0 24 24" aria-hidden="true"><path class="body" d="M12 21C12 21 4 16 4 9C4 5 7 2 12 2C17 2 20 5 20 9C20 16 12 21 12 21Z"/><path class="vein" d="M12 4 L12 19"/></svg>
+        <p>Click to upload, or drag and drop</p>
+        <p class="small">PNG or JPG, up to 10MB</p>
+        <p class="file-name" id="fileName"></p>
+      </div>
+      <input type="file" id="imageInput" accept="image/*" style="display:none;">
+
+      <div class="field">
+        <label for="cropSelect">Crop type</label>
+        <select id="cropSelect">
+          <option value="">Select crop</option>
+          <option value="Soybean">Soybean</option>
+          <option value="Cotton">Cotton</option>
+          <option value="Sugarcane">Sugarcane</option>
+          <option value="Onion">Onion</option>
+          <option value="Tomato">Tomato</option>
+          <option value="Wheat">Wheat</option>
+          <option value="Rice">Rice</option>
+          <option value="Grapes">Grapes</option>
+          <option value="Pomegranate">Pomegranate</option>
+          <option value="Tur">Tur</option>
+          <option value="Chana">Chana</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="districtSelect">District</label>
+        <select id="districtSelect">
+          <option value="">Select district</option>
+          <option value="Pune">Pune</option>
+          <option value="Nashik">Nashik</option>
+          <option value="Nagpur">Nagpur</option>
+          <option value="Kolhapur">Kolhapur</option>
+          <option value="Sangli">Sangli</option>
+        </select>
+      </div>
+      <button onclick="analyzeImage()" id="analyzeBtn" class="btn btn-primary" style="width:100%;margin-top:20px;" disabled>Analyze leaf</button>
     </div>
 
-    <div class="hero-section">
-        <div class="hero-content">
-            <h1>AI Crop Disease Detection</h1>
-            <p>Upload a crop image to detect diseases using machine learning</p>
+    <div class="card">
+      <h3>Preview</h3>
+      <div class="preview-box" id="previewBox">
+        <div class="placeholder" id="previewPlaceholder">
+          <svg class="icon-leaf" viewBox="0 0 24 24" aria-hidden="true"><path class="body" d="M12 21C12 21 4 16 4 9C4 5 7 2 12 2C17 2 20 5 20 9C20 16 12 21 12 21Z"/><path class="vein" d="M12 4 L12 19"/></svg>
+          Your leaf photo will appear here
         </div>
+        <img id="imagePreview" src="" alt="Leaf preview" style="display:none;">
+      </div>
+    </div>
+  </div>
+
+  <div id="resultsLoading" class="card results-card" style="display:none;">
+    <div class="loading-state">
+      <div class="scan-leaf">
+        <svg class="icon-leaf" viewBox="0 0 24 24" aria-hidden="true"><path class="body" d="M12 21C12 21 4 16 4 9C4 5 7 2 12 2C17 2 20 5 20 9C20 16 12 21 12 21Z"/><path class="vein" d="M12 4 L12 19"/></svg>
+        <div class="scan-line"></div>
+      </div>
+      Scanning leaf for symptoms&hellip;
+    </div>
+  </div>
+
+  <div id="resultsContent" class="card results-card" style="display:none;">
+    <h3>Analysis results</h3>
+    <div class="results-grid">
+      <div class="gauge-wrap">
+        <svg viewBox="0 0 150 150">
+          <circle class="gauge-track" cx="75" cy="75" r="58"></circle>
+          <circle class="gauge-fill" id="gaugeFill" cx="75" cy="75" r="58"></circle>
+        </svg>
+        <div class="gauge-label">
+          <span class="gauge-number" id="confidenceValue">--</span>
+          <span class="gauge-unit">% match</span>
+        </div>
+      </div>
+      <div>
+        <p class="diagnosis-name" id="diseaseResult">--</p>
+        <span class="severity-pill" id="severityResult">--</span>
+        <div class="treatment-block">
+          <h4>Treatment</h4>
+          <p id="treatmentResult">--</p>
+        </div>
+      </div>
     </div>
 
-    <div class="container">
-        <div class="grid-2">
-            <div class="card">
-                <h3>📸 Upload Crop Image</h3>
-                <div class="upload-area" onclick="document.getElementById('imageInput').click()" id="uploadArea">
-                    <div class="upload-icon">📷</div>
-                    <p>Click to upload or drag and drop</p>
-                    <p class="small">PNG, JPG, GIF up to 10MB</p>
-                </div>
-                <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageUpload()">
-                <div style="margin-top:1rem;">
-                    <label>Crop Type:</label>
-                    <select id="cropSelect" style="width:100%;">
-                        <option value="">Select Crop</option>
-                        <option value="Soybean">Soybean</option>
-                        <option value="Cotton">Cotton</option>
-                        <option value="Sugarcane">Sugarcane</option>
-                        <option value="Onion">Onion</option>
-                        <option value="Tomato">Tomato</option>
-                        <option value="Wheat">Wheat</option>
-                        <option value="Rice">Rice</option>
-                        <option value="Grapes">Grapes</option>
-                        <option value="Pomegranate">Pomegranate</option>
-                        <option value="Tur">Tur</option>
-                        <option value="Chana">Chana</option>
-                    </select>
-                </div>
-                <div style="margin-top:1rem;">
-                    <label>District:</label>
-                    <select id="districtSelect" style="width:100%;">
-                        <option value="">Select District</option>
-                        <option value="Pune">Pune</option>
-                        <option value="Nashik">Nashik</option>
-                        <option value="Nagpur">Nagpur</option>
-                        <option value="Kolhapur">Kolhapur</option>
-                        <option value="Sangli">Sangli</option>
-                    </select>
-                </div>
-                <button onclick="analyzeImage()" class="btn btn-primary" style="width:100%;margin-top:1rem;">🔍 Analyze Image</button>
-            </div>
+    <hr class="results-divider">
 
-            <div class="card">
-                <h3>Preview</h3>
-                <img id="imagePreview" src="" alt="Image preview" style="display:none;width:100%;border-radius:8px;">
-                <div id="previewPlaceholder" class="placeholder">Image preview will appear here</div>
-            </div>
-        </div>
+    <h4 style="margin:0 0 4px;color:var(--forest);">Detailed recommendations</h4>
+    <ul class="reco-list" id="recommendationsList"></ul>
 
-        <div id="resultsLoading" class="loading" style="display:none;">Analyzing image...</div>
-        <div id="resultsContent" style="display:none;">
-            <div class="card">
-                <h3>🔬 Analysis Results</h3>
-                <div class="results-grid">
-                    <div class="result-item">
-                        <span class="label">Disease</span>
-                        <span id="diseaseResult" class="value">--</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="label">Confidence</span>
-                        <span id="confidenceResult" class="value">--%</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="label">Severity</span>
-                        <span id="severityResult" class="value severity-high">--</span>
-                    </div>
-                </div>
+    <div class="district-note" id="districtNote" style="display:none;"></div>
 
-                <div style="margin-top:1.5rem;">
-                    <h4>💊 Treatment Recommendations</h4>
-                    <p id="treatmentResult"></p>
-                </div>
-
-                <div style="margin-top:1.5rem;">
-                    <h4>📋 Detailed Recommendations</h4>
-                    <ul id="recommendationsList"></ul>
-                </div>
-            </div>
-        </div>
+    <div class="results-footer">
+      <button class="btn btn-secondary" onclick="resetScan()">Scan another leaf</button>
     </div>
+  </div>
+</div>
 
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeLoginModal()">&times;</span>
-            <h2>Login</h2>
-            <form id="authForm">
-                <input type="email" id="authEmail" placeholder="Email" required>
-                <input type="password" id="authPassword" placeholder="Password" required>
-                <button type="submit" class="btn btn-primary" style="width:100%;">Login</button>
-            </form>
-        </div>
-    </div>
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <button class="close" onclick="closeLoginModal()" aria-label="Close">&times;</button>
+    <h2>Login</h2>
+    <form id="authForm">
+      <input type="email" id="authEmail" placeholder="Email" required>
+      <input type="password" id="authPassword" placeholder="Password" required>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Login</button>
+    </form>
+  </div>
+</div>
 
-    <footer>
-        <p>&copy; 2026 Maharashtra Agriculture</p>
-    </footer>
+<div class="toast-container" id="toastContainer"></div>
 
-    <script src="js/api.js"></script>
-    <script src="js/disease.js"></script>
+<footer>
+  <svg class="icon-leaf" viewBox="0 0 24 24" aria-hidden="true"><path class="body" d="M12 21C12 21 4 16 4 9C4 5 7 2 12 2C17 2 20 5 20 9C20 16 12 21 12 21Z"/><path class="vein" d="M12 4 L12 19"/></svg>
+  &copy; 2026 Maharashtra Agriculture
+</footer>
+
+<script>
+(function(){
+
+  /* ---------------- Disease knowledge base ---------------- */
+  /* profile values approximate the expected share of green / yellow / brown / dark
+     pixels in a photo showing that condition. Used to match against the photo
+     the farmer uploads. */
+  var diseaseDB = {
+    Soybean: [
+      {name:"Yellow Mosaic Virus", profile:{green:.35,yellow:.50,brown:.10,dark:.05}, severity:"Medium",
+        treatment:"Remove and destroy infected plants early, and control whitefly vectors with neem-based or recommended insecticide sprays every 10-12 days.",
+        recommendations:["Use yellow-mosaic-resistant varieties next season","Rogue out infected plants before pod stage","Manage whitefly populations along field borders","Avoid late sowing, which raises vector pressure"]},
+      {name:"Bacterial Pustule", profile:{green:.50,yellow:.15,brown:.20,dark:.15}, severity:"Medium",
+        treatment:"Apply a copper oxychloride spray as soon as pustules appear and repeat after 10 days if humid weather continues.",
+        recommendations:["Rotate with a non-host crop such as maize or jowar","Avoid late-day overhead irrigation","Sow only certified, disease-free seed","Clear crop residue after harvest"]},
+      {name:"Frogeye Leaf Spot", profile:{green:.50,yellow:.10,brown:.15,dark:.25}, severity:"High",
+        treatment:"Apply a strobilurin or triazole fungicide at the first sign of spots, focusing on dense canopy areas.",
+        recommendations:["Widen row spacing to improve airflow","Destroy crop residue after harvest","Avoid field work while leaves are wet","Scout weekly through the flowering stage"]}
+    ],
+    Cotton: [
+      {name:"Bacterial Blight", profile:{green:.45,yellow:.15,brown:.25,dark:.15}, severity:"High",
+        treatment:"Spray streptocycline with copper oxychloride at first symptoms, and avoid working the field while it is wet.",
+        recommendations:["Use acid-delinted, certified seed","Rotate with non-cotton crops for a season","Remove and burn infected plant debris","Avoid excess nitrogen, which favors the disease"]},
+      {name:"Leaf Curl Virus", profile:{green:.40,yellow:.45,brown:.10,dark:.05}, severity:"Medium",
+        treatment:"Control the whitefly vector with recommended insecticides and remove severely curled, stunted plants.",
+        recommendations:["Plant tolerant hybrids where available","Keep field borders free of weed hosts","Use yellow sticky traps to monitor whitefly","Avoid overlapping sowing dates with neighboring fields"]},
+      {name:"Grey Mildew", profile:{green:.50,yellow:.20,brown:.20,dark:.10}, severity:"Medium",
+        treatment:"Apply a sulfur-based or systemic fungicide spray and improve canopy ventilation by managing plant spacing.",
+        recommendations:["Avoid excess humidity from over-irrigation","Remove lower infected leaves","Rotate fungicide groups to prevent resistance","Monitor closely during cool, humid spells"]}
+    ],
+    Sugarcane: [
+      {name:"Red Rot", profile:{green:.35,yellow:.35,brown:.25,dark:.05}, severity:"High",
+        treatment:"Rogue out and destroy infected clumps immediately, and avoid using setts from affected fields for planting.",
+        recommendations:["Plant only certified, disease-free setts","Treat setts with a fungicide dip before planting","Rotate with a non-host crop where infection is heavy","Improve field drainage to reduce waterlogging"]},
+      {name:"Smut", profile:{green:.50,yellow:.10,brown:.10,dark:.30}, severity:"High",
+        treatment:"Remove and burn whip-like smut shoots before they rupture, and avoid ratooning badly affected fields.",
+        recommendations:["Use smut-resistant varieties for replanting","Hot-water-treat setts before sowing","Destroy crop residue after harvest","Avoid moisture stress, which increases susceptibility"]},
+      {name:"Rust", profile:{green:.45,yellow:.20,brown:.30,dark:.05}, severity:"Medium",
+        treatment:"Apply a triazole fungicide spray if pustules are spreading rapidly across the field.",
+        recommendations:["Avoid excess nitrogen application","Improve drainage to reduce leaf moisture","Choose rust-tolerant varieties next planting","Monitor closely during humid, overcast weather"]}
+    ],
+    Onion: [
+      {name:"Purple Blotch", profile:{green:.45,yellow:.20,brown:.30,dark:.05}, severity:"Medium",
+        treatment:"Spray mancozeb or a chlorothalonil-based fungicide at 7-10 day intervals once lesions appear.",
+        recommendations:["Avoid overhead irrigation in the evening","Maintain wider plant spacing for airflow","Remove and destroy infected leaves","Rotate with a non-allium crop"]},
+      {name:"Stemphylium Blight", profile:{green:.40,yellow:.35,brown:.20,dark:.05}, severity:"Medium",
+        treatment:"Apply a protectant fungicide early, and avoid moisture stress that weakens leaf tissue.",
+        recommendations:["Irrigate at the base rather than overhead","Avoid planting in poorly drained soil","Remove volunteer onion plants nearby","Use balanced potassium fertilization"]},
+      {name:"Downy Mildew", profile:{green:.45,yellow:.40,brown:.10,dark:.05}, severity:"Low",
+        treatment:"Apply a systemic fungicide at the first pale patches and improve airflow between rows.",
+        recommendations:["Avoid dense planting in humid pockets","Remove infected leaves promptly","Irrigate in the morning so foliage dries by evening","Use disease-free transplants"]}
+    ],
+    Tomato: [
+      {name:"Early Blight", profile:{green:.45,yellow:.15,brown:.20,dark:.20}, severity:"Medium",
+        treatment:"Spray chlorothalonil or mancozeb at the first concentric spots and remove lower infected leaves.",
+        recommendations:["Mulch to reduce soil splash onto leaves","Stake plants for better airflow","Avoid overhead watering late in the day","Rotate with a non-solanaceous crop"]},
+      {name:"Late Blight", profile:{green:.35,yellow:.10,brown:.30,dark:.25}, severity:"High",
+        treatment:"Apply a copper-based or systemic fungicide immediately and remove affected plants to limit spread.",
+        recommendations:["Improve drainage to avoid waterlogged soil","Avoid working the field in wet weather","Destroy infected debris, do not compost it","Space plants for faster leaf drying"]},
+      {name:"Leaf Curl Virus", profile:{green:.40,yellow:.50,brown:.05,dark:.05}, severity:"Medium",
+        treatment:"Control the whitefly vector with recommended insecticide and rogue out severely affected plants.",
+        recommendations:["Use virus-tolerant varieties where available","Keep nursery beds covered with insect-proof netting","Remove weed hosts around field edges","Avoid planting near older, infected tomato fields"]}
+    ],
+    Wheat: [
+      {name:"Yellow Rust", profile:{green:.40,yellow:.50,brown:.05,dark:.05}, severity:"Medium",
+        treatment:"Spray a triazole fungicide as soon as yellow stripes appear, particularly in cooler, humid weather.",
+        recommendations:["Choose rust-resistant varieties for next sowing","Avoid excess nitrogen early in the season","Monitor fields closely after cool, wet spells","Sow at recommended dates to avoid peak rust periods"]},
+      {name:"Loose Smut", profile:{green:.50,yellow:.10,brown:.10,dark:.30}, severity:"High",
+        treatment:"There is no in-season cure; treat seed with a systemic fungicide before the next sowing.",
+        recommendations:["Use certified, smut-free seed","Hot-water or fungicide seed treatment before sowing","Rogue out and remove smutted heads before they shed spores","Avoid saving seed from infected fields"]},
+      {name:"Powdery Mildew", profile:{green:.55,yellow:.15,brown:.20,dark:.10}, severity:"Low",
+        treatment:"Apply a sulfur-based fungicide at early white powdery patches on lower leaves.",
+        recommendations:["Avoid dense sowing that limits airflow","Avoid excess nitrogen application","Choose tolerant varieties where available","Monitor closely during cool, cloudy weather"]}
+    ],
+    Rice: [
+      {name:"Blast", profile:{green:.40,yellow:.15,brown:.25,dark:.20}, severity:"High",
+        treatment:"Apply a tricyclazole-based fungicide at the first spindle-shaped lesions and avoid excess nitrogen.",
+        recommendations:["Use blast-resistant varieties where available","Avoid water stress during the vegetative stage","Apply nitrogen in split doses, not all at once","Maintain field bunds to manage water depth"]},
+      {name:"Bacterial Leaf Blight", profile:{green:.35,yellow:.45,brown:.15,dark:.05}, severity:"High",
+        treatment:"Drain standing water where possible and apply a copper-based bactericide at early streaking.",
+        recommendations:["Avoid clipping seedling tips during transplanting","Use balanced, split nitrogen application","Avoid continuous flooding during early growth","Rotate fields with a non-host crop where severe"]},
+      {name:"Brown Spot", profile:{green:.50,yellow:.15,brown:.25,dark:.10}, severity:"Medium",
+        treatment:"Apply mancozeb or a propiconazole-based fungicide and correct any potassium deficiency in the soil.",
+        recommendations:["Use balanced NPK with adequate potassium","Avoid water stress at panicle stage","Use disease-free, treated seed","Improve field drainage after heavy rain"]}
+    ],
+    Grapes: [
+      {name:"Downy Mildew", profile:{green:.45,yellow:.35,brown:.15,dark:.05}, severity:"Medium",
+        treatment:"Apply a copper or metalaxyl-based fungicide promptly, especially before forecast rain.",
+        recommendations:["Improve canopy ventilation through pruning","Avoid irrigation that wets the foliage","Remove and destroy infected leaves and shoots","Spray preventively ahead of humid weather"]},
+      {name:"Powdery Mildew", profile:{green:.55,yellow:.15,brown:.20,dark:.10}, severity:"Low",
+        treatment:"Apply a sulfur-based spray at the first powdery patches on leaves or berries.",
+        recommendations:["Maintain open canopy through regular pruning","Avoid excess nitrogen, which favors soft growth","Monitor closely during warm, dry spells","Rotate fungicide classes to avoid resistance"]},
+      {name:"Anthracnose", profile:{green:.40,yellow:.10,brown:.20,dark:.30}, severity:"High",
+        treatment:"Prune out and destroy infected shoots, and apply a protectant fungicide before the rainy season.",
+        recommendations:["Avoid overhead irrigation during fruiting","Remove infected canes during winter pruning","Use disease-free planting material","Improve drainage around the vine base"]}
+    ],
+    Pomegranate: [
+      {name:"Bacterial Blight (Oily Spot)", profile:{green:.40,yellow:.15,brown:.20,dark:.25}, severity:"High",
+        treatment:"Spray a copper-based bactericide and prune out infected twigs to reduce the source of infection.",
+        recommendations:["Avoid overhead irrigation during humid months","Disinfect pruning tools between plants","Remove fallen infected leaves and fruit","Avoid planting too densely"]},
+      {name:"Cercospora Leaf Spot", profile:{green:.45,yellow:.25,brown:.25,dark:.05}, severity:"Medium",
+        treatment:"Apply a mancozeb-based fungicide at the first brown spots with yellow halos.",
+        recommendations:["Improve airflow with regular canopy pruning","Remove and destroy fallen infected leaves","Avoid water stress, which weakens leaf defenses","Maintain balanced micronutrient fertilization"]},
+      {name:"Wilt", profile:{green:.30,yellow:.45,brown:.20,dark:.05}, severity:"High",
+        treatment:"Remove and destroy severely wilted plants, and avoid replanting pomegranate in the same spot immediately.",
+        recommendations:["Improve soil drainage around the root zone","Avoid waterlogging, especially after rain","Use wilt-tolerant rootstock where available","Solarize soil before replanting in affected patches"]}
+    ],
+    Tur: [
+      {name:"Fusarium Wilt", profile:{green:.35,yellow:.45,brown:.15,dark:.05}, severity:"High",
+        treatment:"Remove and destroy wilted plants, and avoid replanting tur in heavily infected soil for a season.",
+        recommendations:["Use wilt-resistant varieties for next sowing","Rotate with cereals such as jowar or maize","Improve drainage to avoid waterlogged soil","Treat seed with a biofungicide before sowing"]},
+      {name:"Sterility Mosaic", profile:{green:.45,yellow:.40,brown:.10,dark:.05}, severity:"Medium",
+        treatment:"Rogue out and remove mosaic-affected plants early, and control the mite vector with recommended sprays.",
+        recommendations:["Use sterility-mosaic-tolerant varieties","Avoid sowing close to older, infected tur fields","Maintain field sanitation after harvest","Monitor for mite activity during dry spells"]},
+      {name:"Leaf Spot", profile:{green:.50,yellow:.15,brown:.25,dark:.10}, severity:"Medium",
+        treatment:"Apply a mancozeb-based fungicide spray once circular brown spots are visible on lower leaves.",
+        recommendations:["Avoid dense sowing that limits airflow","Remove infected crop debris after harvest","Rotate with a non-host crop where recurring","Maintain balanced potassium fertilization"]}
+    ],
+    Chana: [
+      {name:"Fusarium Wilt", profile:{green:.35,yellow:.45,brown:.15,dark:.05}, severity:"High",
+        treatment:"Remove and destroy wilted plants promptly, and avoid sowing chana again in heavily infected plots.",
+        recommendations:["Use wilt-resistant varieties for next sowing","Treat seed with a biofungicide before sowing","Rotate with cereals for at least one season","Avoid waterlogging around the root zone"]},
+      {name:"Ascochyta Blight", profile:{green:.40,yellow:.15,brown:.20,dark:.25}, severity:"High",
+        treatment:"Apply a chlorothalonil or mancozeb spray at the first dark lesions on stems or leaves.",
+        recommendations:["Use certified, disease-free seed","Avoid sowing in fields with infected residue","Maintain wider row spacing for airflow","Avoid working fields while plants are wet"]},
+      {name:"Botrytis Grey Mould", profile:{green:.50,yellow:.15,brown:.20,dark:.15}, severity:"Medium",
+        treatment:"Improve airflow by thinning dense growth and apply a protectant fungicide in humid weather.",
+        recommendations:["Avoid excess nitrogen, which thickens canopy","Avoid overhead irrigation in cool weather","Remove and destroy heavily moulded plants","Monitor closely during cloudy, humid spells"]}
+    ]
+  };
+
+  var healthyTemplate = {
+    name:"No Disease Detected", severity:"Low",
+    profile:{green:.80,yellow:.05,brown:.05,dark:.05},
+    treatment:"The leaf looks healthy. Continue regular monitoring and a balanced fertilization schedule.",
+    recommendations:["Scout the field weekly for early symptoms","Maintain a balanced NPK and micronutrient schedule","Ensure proper field drainage","Watch closely around weather changes"]
+  };
+
+  var districtAdvisory = {
+    Pune:"Pune", Nashik:"Nashik", Nagpur:"Nagpur", Kolhapur:"Kolhapur", Sangli:"Sangli"
+  };
+
+  /* ---------------- State ---------------- */
+  var uploadedImage = null;
+  var loggedInEmail = null;
+
+  var imageInput = document.getElementById('imageInput');
+  var uploadArea = document.getElementById('uploadArea');
+  var cropSelect = document.getElementById('cropSelect');
+  var analyzeBtn = document.getElementById('analyzeBtn');
+  var imagePreview = document.getElementById('imagePreview');
+  var previewPlaceholder = document.getElementById('previewPlaceholder');
+  var fileNameEl = document.getElementById('fileName');
+
+  function showToast(message, type){
+    var container = document.getElementById('toastContainer');
+    var toast = document.createElement('div');
+    toast.className = 'toast' + (type === 'error' ? ' error' : '');
+    toast.textContent = message;
+    container.appendChild(toast);
+    requestAnimationFrame(function(){ toast.classList.add('show'); });
+    setTimeout(function(){
+      toast.classList.remove('show');
+      setTimeout(function(){ toast.remove(); }, 300);
+    }, 3200);
+  }
+
+  function updateAnalyzeButton(){
+    analyzeBtn.disabled = !(uploadedImage && cropSelect.value);
+  }
+
+  function handleFile(file){
+    if (!file) return;
+    if (!file.type.startsWith('image/')){
+      showToast('Please choose an image file.', 'error');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e){
+      uploadedImage = new Image();
+      uploadedImage.onload = function(){
+        imagePreview.src = e.target.result;
+        imagePreview.style.display = 'block';
+        previewPlaceholder.style.display = 'none';
+        fileNameEl.textContent = file.name;
+        updateAnalyzeButton();
+      };
+      uploadedImage.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  imageInput.addEventListener('change', function(){
+    handleFile(imageInput.files[0]);
+  });
+  cropSelect.addEventListener('change', updateAnalyzeButton);
+
+  uploadArea.addEventListener('dragover', function(e){
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+  });
+  uploadArea.addEventListener('dragleave', function(){
+    uploadArea.classList.remove('dragover');
+  });
+  uploadArea.addEventListener('drop', function(e){
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]){
+      handleFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  /* ---------------- Image analysis ---------------- */
+  function analyzeImageColors(img){
+    var size = 96;
+    var canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, size, size);
+    var data = ctx.getImageData(0, 0, size, size).data;
+    var green = 0, yellow = 0, brown = 0, dark = 0, total = 0;
+
+    for (var i = 0; i < data.length; i += 4){
+      var r = data[i], g = data[i+1], b = data[i+2];
+      var brightness = (r + g + b) / 3;
+      total++;
+
+      if (brightness < 55){ dark++; continue; }
+      if (g >= r && g >= b && g > 70){ green++; continue; }
+      if (r > 95 && g > 75 && b < 95 && Math.abs(r - g) < 65){
+        if (brightness > 115) yellow++; else brown++;
+        continue;
+      }
+      if (r > g && r > b){ brown++; } else { green++; }
+    }
+
+    return {
+      green: green / total,
+      yellow: yellow / total,
+      brown: brown / total,
+      dark: dark / total
+    };
+  }
+
+  function pickDiagnosis(crop, colors){
+    var candidates = (diseaseDB[crop] || []).concat([healthyTemplate]);
+    var best = null, bestDist = Infinity;
+    candidates.forEach(function(d){
+      var dist = Math.sqrt(
+        Math.pow(colors.green - d.profile.green, 2) +
+        Math.pow(colors.yellow - d.profile.yellow, 2) +
+        Math.pow(colors.brown - d.profile.brown, 2) +
+        Math.pow(colors.dark - d.profile.dark, 2)
+      );
+      if (dist < bestDist){ bestDist = dist; best = d; }
+    });
+    var confidence = Math.max(58, Math.min(97, Math.round(100 - bestDist * 140)));
+    return { disease: best, confidence: confidence };
+  }
+
+  /* ---------------- Render results ---------------- */
+  var GAUGE_R = 58;
+  var GAUGE_CIRC = 2 * Math.PI * GAUGE_R;
+  var gaugeFill = document.getElementById('gaugeFill');
+  gaugeFill.style.strokeDasharray = GAUGE_CIRC;
+  gaugeFill.style.strokeDashoffset = GAUGE_CIRC;
+
+  function severityClass(sev){
+    if (sev === 'High') return 'severity-high';
+    if (sev === 'Medium') return 'severity-medium';
+    return 'severity-low';
+  }
+  function severityColor(sev){
+    if (sev === 'High') return 'var(--terracotta)';
+    if (sev === 'Medium') return 'var(--amber)';
+    return 'var(--leaf)';
+  }
+
+  function renderResults(result, crop, district){
+    var disease = result.disease;
+    document.getElementById('diseaseResult').textContent = disease.name;
+    document.getElementById('treatmentResult').textContent = disease.treatment;
+
+    var sevEl = document.getElementById('severityResult');
+    sevEl.textContent = disease.severity + ' severity';
+    sevEl.className = 'severity-pill ' + severityClass(disease.severity);
+
+    var list = document.getElementById('recommendationsList');
+    list.innerHTML = '';
+    disease.recommendations.forEach(function(rec){
+      var li = document.createElement('li');
+      li.innerHTML = '<svg class="icon-leaf" viewBox="0 0 24 24" aria-hidden="true"><path class="body" d="M12 21C12 21 4 16 4 9C4 5 7 2 12 2C17 2 20 5 20 9C20 16 12 21 12 21Z"/><path class="vein" d="M12 4 L12 19"/></svg><span></span>';
+      li.querySelector('span').textContent = rec;
+      list.appendChild(li);
+    });
+
+    var noteEl = document.getElementById('districtNote');
+    if (district){
+      noteEl.style.display = 'block';
+      noteEl.textContent = 'Similar symptoms on ' + crop.toLowerCase() + ' have been seen in comparable conditions around ' + district + ' district this season. Share a photo with your local Krishi Vigyan Kendra (KVK) to confirm before treating.';
+    } else {
+      noteEl.style.display = 'none';
+    }
+
+    document.getElementById('confidenceValue').textContent = result.confidence;
+    gaugeFill.style.stroke = severityColor(disease.severity);
+    gaugeFill.style.strokeDashoffset = GAUGE_CIRC;
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        gaugeFill.style.strokeDashoffset = GAUGE_CIRC * (1 - result.confidence / 100);
+      });
+    });
+  }
+
+  window.analyzeImage = function(){
+    var crop = cropSelect.value;
+    var district = document.getElementById('districtSelect').value;
+    if (!uploadedImage || !crop){
+      showToast('Please add a photo and select a crop first.', 'error');
+      return;
+    }
+
+    document.getElementById('resultsContent').style.display = 'none';
+    document.getElementById('resultsLoading').style.display = 'block';
+    document.getElementById('resultsLoading').scrollIntoView({ behavior:'smooth', block:'center' });
+
+    setTimeout(function(){
+      var colors = analyzeImageColors(uploadedImage);
+      var result = pickDiagnosis(crop, colors);
+      renderResults(result, crop, district);
+      document.getElementById('resultsLoading').style.display = 'none';
+      document.getElementById('resultsContent').style.display = 'block';
+    }, 900);
+  };
+
+  window.resetScan = function(){
+    uploadedImage = null;
+    imageInput.value = '';
+    imagePreview.style.display = 'none';
+    previewPlaceholder.style.display = 'block';
+    fileNameEl.textContent = '';
+    cropSelect.value = '';
+    document.getElementById('districtSelect').value = '';
+    updateAnalyzeButton();
+    document.getElementById('resultsContent').style.display = 'none';
+    document.getElementById('resultsLoading').style.display = 'none';
+    window.scrollTo({ top:0, behavior:'smooth' });
+  };
+
+  /* ---------------- Auth (demo only, in-memory) ---------------- */
+  window.openLoginModal = function(){
+    document.getElementById('loginModal').classList.add('open');
+  };
+  window.closeLoginModal = function(){
+    document.getElementById('loginModal').classList.remove('open');
+  };
+
+  document.getElementById('authForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var email = document.getElementById('authEmail').value;
+    loggedInEmail = email;
+    document.getElementById('loginBtn').style.display = 'none';
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+    closeLoginModal();
+    showToast('Welcome back, ' + email.split('@')[0] + '!');
+    document.getElementById('authForm').reset();
+  });
+
+  window.logout = function(){
+    loggedInEmail = null;
+    document.getElementById('loginBtn').style.display = 'inline-block';
+    document.getElementById('logoutBtn').style.display = 'none';
+    showToast('Logged out.');
+  };
+
+  document.getElementById('loginModal').addEventListener('click', function(e){
+    if (e.target.id === 'loginModal') closeLoginModal();
+  });
+
+})();
+</script>
 </body>
 </html>

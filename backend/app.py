@@ -1,47 +1,81 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 import joblib
+import os
 
-# Create Flask app
-app = Flask(__name__)
+from database import Base, engine
+from disease import router as disease_router
+from schemes import router as schemes_router
+from schema import ProfitPredictionRequest, ProfitPredictionResponse
 
-# Load trained ML model
-model = joblib.load("profit_model.pkl")
+# =========================================================
+# FastAPI App
+# =========================================================
+app = FastAPI(title="Maharashtra Agriculture API")
 
+# =========================================================
+# Create Database Tables
+# =========================================================
+Base.metadata.create_all(bind=engine)
 
-# Home route
-@app.route("/")
+# =========================================================
+# CORS Configuration
+# =========================================================
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],   # development साठी
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# =========================================================
+# Load Profit Prediction Model
+# =========================================================
+MODEL_PATH = "profit_model.pkl"
+model = None
+
+if os.path.exists(MODEL_PATH):
+    try:
+        model = joblib.load(MODEL_PATH)
+        print("Profit model loaded successfully")
+    except Exception as e:
+        print(f"Error loading profit model: {e}")
+else:
+    print("profit_model.pkl not found")
+
+# =========================================================
+# Include Routers
+# =========================================================
+app.include_router(disease_router, prefix="/api/disease", tags=["Disease"])
+app.include_router(schemes_router, prefix="/api/schemes", tags=["Schemes"])
+
+# =========================================================
+# Home Route
+# =========================================================
+@app.get("/")
 def home():
-    return "Agriculture ML API is running!"
+    return {"message": "Agriculture ML API is running!"}
 
+# =========================================================
+# Profit Prediction Route
+# =========================================================
+@app.post("/api/predict", response_model=ProfitPredictionResponse)
+def predict_profit(data: ProfitPredictionRequest):
+    try:
+        if model is None:
+            raise HTTPException(status_code=500, detail="Profit model not loaded")
 
-# Prediction route
-@app.route("/predict", methods=["POST"])
-def predict():
+        prediction = model.predict([[
+            data.crop,
+            data.district,
+            data.rainfall,
+            data.temperature,
+            data.area,
+            data.market_price
+        ]])
 
-    data = request.json
+        return {"profit": float(prediction[0])}
 
-    crop = data["crop"]
-    district = data["district"]
-    rainfall = data["rainfall"]
-    temperature = data["temperature"]
-    area = data["area"]
-    market_price = data["market_price"]
-
-    # Predict profit
-    prediction = model.predict([[
-        crop,
-        district,
-        rainfall,
-        temperature,
-        area,
-        market_price
-    ]])
-
-    return jsonify({
-        "profit": float(prediction[0])
-    })
-
-
-# Run Flask server
-if __name__ == "__main__":
-    app.run(debug=True)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")

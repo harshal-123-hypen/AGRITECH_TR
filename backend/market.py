@@ -6,8 +6,8 @@ import aiohttp
 import logging
 from database import get_db
 from models import MarketData
-from schemas import MarketDataResponse
-from config import get_settings
+from ml.schemas import MarketDataResponse
+from ml.config import get_settings
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
