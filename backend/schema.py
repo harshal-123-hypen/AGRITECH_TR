@@ -89,6 +89,20 @@ class ProfitPredictionRequest(BaseModel):
 class ProfitPredictionResponse(BaseModel):
     profit: float
 
+# =========================================================
+# Crop Recommendation Schemas
+# =========================================================
+
+class CropRecommendationRequest(BaseModel):
+    district: str
+    rainfall: float
+    temperature: float
+    area: float
+    market_price: float
+
+
+class CropRecommendationResponse(BaseModel):
+    recommended_crop: str
 
 # =========================================================
 # Prediction History / Generic Prediction Schemas

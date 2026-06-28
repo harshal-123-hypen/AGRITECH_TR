@@ -6,7 +6,12 @@ import os
 from database import Base, engine
 from disease import router as disease_router
 from schemes import router as schemes_router
-from schema import ProfitPredictionRequest, ProfitPredictionResponse
+from schema import (
+    ProfitPredictionRequest,
+    ProfitPredictionResponse,
+    CropRecommendationRequest,
+    CropRecommendationResponse
+)
 
 # =========================================================
 # FastAPI App
@@ -33,7 +38,22 @@ app.add_middleware(
 # Load Profit Prediction Model
 # =========================================================
 MODEL_PATH = "profit_model.pkl"
-model = None
+
+CROP_MODEL_PATH = "models/crop_model.pkl"
+CROP_ENCODER_PATH = "models/crop_encoder.pkl"
+DISTRICT_ENCODER_PATH = "models/district_encoder.pkl"
+
+crop_model = None
+crop_encoder = None
+district_encoder = None
+
+try:
+    crop_model = joblib.load(CROP_MODEL_PATH)
+    crop_encoder = joblib.load(CROP_ENCODER_PATH)
+    district_encoder = joblib.load(DISTRICT_ENCODER_PATH)
+    print("Crop Recommendation Model Loaded Successfully")
+except Exception as e:
+    print(f"Error loading crop recommendation model: {e}")
 
 if os.path.exists(MODEL_PATH):
     try:
@@ -79,3 +99,41 @@ def predict_profit(data: ProfitPredictionRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+    
+    # =========================================================
+# Crop Recommendation Route
+# =========================================================
+@app.post("/api/crop_recommendation", response_model=CropRecommendationResponse)
+def crop_recommendation(data: CropRecommendationRequest):
+
+    try:
+
+        if crop_model is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Crop model not loaded"
+            )
+
+        district = district_encoder.transform(
+            [data.district]
+        )[0]
+
+        prediction = crop_model.predict([[
+            district,
+            data.rainfall,
+            data.temperature,
+            data.area,
+            data.market_price
+        ]])
+
+        crop = crop_encoder.inverse_transform(prediction)
+
+        return {
+            "recommended_crop": crop[0]
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )

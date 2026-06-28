@@ -1,0 +1,319 @@
+/* ===========================================================
+   AI Crop Recommendation Section
+=========================================================== */
+
+#crop-recommendation-section{
+    margin-top:30px;
+}
+
+#crop-recommendation-section .card{
+    border-radius:20px;
+    overflow:hidden;
+    border:1px solid rgba(34,197,94,.15);
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+#crop-recommendation-section .card-head{
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+    color:white;
+    padding:22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+#crop-recommendation-section .card-head h3{
+    margin:0;
+    font-size:28px;
+}
+
+#crop-recommendation-section .card-body{
+    padding:30px;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+}
+
+.form-group label{
+    font-weight:600;
+    margin-bottom:8px;
+    color:#374151;
+}
+
+.form-group input,
+.form-group select{
+
+    padding:14px;
+    border-radius:12px;
+    border:2px solid #d1d5db;
+    outline:none;
+    font-size:15px;
+    transition:.3s;
+
+}
+
+.form-group input:focus,
+.form-group select:focus{
+
+    border-color:#22c55e;
+    box-shadow:0 0 0 4px rgba(34,197,94,.15);
+
+}
+
+#crop-recommendation-section button{
+
+    width:100%;
+    margin-top:30px;
+    padding:16px;
+    font-size:18px;
+    font-weight:bold;
+    color:white;
+    border:none;
+    border-radius:14px;
+    cursor:pointer;
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+    transition:.3s;
+
+}
+
+#crop-recommendation-section button:hover{
+
+    transform:translateY(-3px);
+    box-shadow:0 10px 25px rgba(34,197,94,.35);
+
+}
+
+#cropLoading{
+
+    margin-top:25px;
+    text-align:center;
+    font-size:18px;
+    color:#16a34a;
+    font-weight:bold;
+
+}
+
+.result-card{
+
+    margin-top:25px;
+    display:none;
+    padding:25px;
+    border-radius:18px;
+    background:#f0fdf4;
+    border-left:6px solid #22c55e;
+    animation:fadeUp .5s ease;
+
+}
+
+.result-card h2{
+
+    margin-top:0;
+    color:#15803d;
+
+}
+
+.result-card p{
+
+    margin:8px 0;
+    font-size:17px;
+
+}
+
+@keyframes fadeUp{
+
+from{
+opacity:0;
+transform:translateY(20px);
+}
+
+to{
+opacity:1;
+transform:translateY(0);
+}
+
+}
+
+/*====================================================
+            PROFESSIONAL NAVBAR
+====================================================*/
+
+.navbar{
+
+    position:sticky;
+    top:0;
+    left:0;
+    width:100%;
+    z-index:9999;
+
+    background:rgba(18,42,28,.88);
+    backdrop-filter:blur(18px);
+
+    border-bottom:1px solid rgba(255,255,255,.08);
+
+}
+
+.nav-inner{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:15px 40px;
+
+}
+
+.logo{
+
+    display:flex;
+    align-items:center;
+    gap:15px;
+    text-decoration:none;
+
+}
+
+.logo-icon{
+
+    width:60px;
+    height:60px;
+
+    border-radius:50%;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:30px;
+
+    background:linear-gradient(135deg,#22c55e,#15803d);
+
+    color:#fff;
+
+    box-shadow:0 10px 25px rgba(34,197,94,.35);
+
+}
+
+.logo-text h2{
+
+    color:#fff;
+
+    margin:0;
+
+    font-size:24px;
+
+    font-weight:700;
+
+}
+
+.logo-text p{
+
+    color:#d1fae5;
+
+    margin-top:3px;
+
+    font-size:13px;
+
+}
+
+.nav-links{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:25px;
+
+}
+
+.nav-links a{
+
+    text-decoration:none;
+
+    color:#ffffff;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.35s;
+
+    padding:10px 16px;
+
+    border-radius:12px;
+
+}
+
+.nav-links a:hover{
+
+    background:#22c55e;
+
+    transform:translateY(-2px);
+
+}
+
+.nav-links .active{
+
+    background:#22c55e;
+
+}
+
+.nav-right{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+}
+
+.lang-select{
+
+    border:none;
+
+    outline:none;
+
+    padding:10px 14px;
+
+    border-radius:12px;
+
+    background:#ffffff;
+
+    font-weight:600;
+
+}
+
+.btn-primary{
+
+    background:linear-gradient(135deg,#22c55e,#15803d);
+
+    color:white;
+
+    border:none;
+
+    padding:11px 24px;
+
+    border-radius:14px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+
+    transition:.35s;
+
+}
+
+.btn-primary:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 10px 25px rgba(34,197,94,.35);
+
+}
